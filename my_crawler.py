@@ -35,6 +35,7 @@ YAMMER_GROUP_MESSAGES = 'https://www.yammer.com/api/v1/messages/in_group/'
 #YAMMER_API_USER = 'https://www.yammer.com/api/v1/users/in_group/15273590.json'
 
 YAMMER_GROUP_USERS = 'https://www.yammer.com/api/v1/users/in_group/'
+API_RESTRICT = 20
 
 
 def simulate_keyboard(the_str):
@@ -212,15 +213,84 @@ class My_Crawler():
     ###########download_all_messages()###################################################
 
 
-    def download_new_messages(self, group_id, newer_than_message_id):
+    def download_newer_messages(self, group_id, newer_than_message_id, interval=5):
         '''
         Download newer messages based on the existing database
 
         :param group_id:
         :param newer_than_message_id:
-        :return:
+        :return: newer_json_result
         '''
-        pass
+
+        print("Start download newer messages than %s"%(newer_than_message_id))
+        newer_json_result = None
+        json_str = None
+        i = 0
+        soup = None
+        #YAMMER_API_MESSAGE = 'https://www.yammer.com/api/v1/messages/in_group/'
+        group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?newer_than=%s'%(newer_than_message_id)
+
+        while 1:
+            i += 1
+            print("Download batch {}".format(i))
+
+            js_cmd = r'window.open("{}");'.format(group_messages_url)
+            self.my_browser.execute_script(js_cmd)
+
+            handles = self.my_browser.window_handles
+            self.my_browser.switch_to.window(handles[-1])
+
+            soup = BeautifulSoup(self.my_browser.page_source, features="html.parser")
+            json_str = soup.get_text("body")
+            json_dict = json.loads(json_str)
+
+            #concatenate json_str to newer_json_result
+            if newer_json_result == None:
+                newer_json_result = json_dict
+            else:
+                if len(json_dict["messages"]) != 0:
+                    #May have same messages
+                    extend_diff(newer_json_result["messages"], json_dict["messages"])
+
+                    extend_diff(newer_json_result["references"], json_dict["references"])
+                    extend_diff(newer_json_result["meta"]["followed_user_ids"],\
+                                json_dict["meta"]["followed_user_ids"])
+                    extend_diff(newer_json_result["meta"]["followed_references"],\
+                                json_dict["meta"]["followed_references"])
+                else:
+                    print("Can't find more messages due to yammer api bug")
+                    break
+
+            # Check to stop
+            if "older_available" not in json_dict["meta"].keys():
+                if len(json_dict["messages"]) < API_RESTRICT:
+                    print("No more newer messages, download finished")
+                    break
+                else:
+                    for message_dict in json_dict["messages"]:
+                        if message_dict["id"] == newer_than_message_id:
+                            print("Finding is over since newer_than_message_id got")
+                            break
+
+            else:
+                if not json_dict["meta"]["older_available"]:
+                    print("No more messages, download finished, this shuold not happen")
+                    break
+                else:
+                    for message_dict in json_dict["messages"]:
+                        if message_dict["id"] == newer_than_message_id:
+                            print("Finding is over since newer_than_message_id got")
+                            break
+
+
+            print("more newer messages available, sleep %d second.."%(interval))
+            sleep(interval)
+            last_message_id = json_dict["messages"][-1]["id"]
+            print("continue to download older messages than id: %s."%(last_message_id))
+            group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?older_than=%s'%(last_message_id)
+
+        return newer_json_result
+    ###########################download_newer_messages()##########################################
 
 
     def get_latest_message(self, group_id, json_data):
@@ -309,7 +379,7 @@ class My_Crawler():
 
         return json_result
 
-    ###########download_all_messages()###################################################
+    ###########download_all_users()###################################################
 
 
     def download_messages_in_conversation(self, thread_id):
@@ -334,10 +404,12 @@ if __name__ == '__main__':
     print("Debug messages result_json: {}".format(result_json))
     file_name = 'group_%s_messages.json'%(group_id)
     with open(file_name, 'w') as fb:
+        #convert dict to string
         fb.write(json.dumps(result_json))
     '''
 
 
+    '''
     group_id = '12562314' #QD Center
     #download and save all users in the group
     result_json = my_crawler.download_all_users(group_id, interval=5)
@@ -345,7 +417,13 @@ if __name__ == '__main__':
     file_name = 'group_%s_users.json'%(group_id)
     with open(file_name, 'w') as fb:
         fb.write(json.dumps(result_json))
+    '''
 
+
+    #Test to download newer messages
+    newer_than_message_id = '1126445002'
+    newer_result_json = my_crawler.download_newer_messages(group_id, newer_than_message_id, interval=5)
+    print("DEBUG newer_result_json: {}".format(newer_result_json))
 
     print("done")
 
