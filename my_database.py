@@ -14,7 +14,11 @@ GROUP_DB_PATH = os.path.join(DATA_PATH, GROUP_DB)
 class My_Database():
     def __init__(self):
 
-        self.group_db = None
+        self.group_db = {}
+        for item in os.listdir(DATA_PATH):
+            if item.endswith('.json'):
+                self.group_db[item.split('_')[1]] = {"messages":None, "users":None}
+
         for item in os.listdir(DATA_PATH):
             if item.endswith('messages.json'):
                 self.group_db[item.split('_')[1]]["messages"] = item
@@ -22,6 +26,8 @@ class My_Database():
                 self.group_db[item.split('_')[1]]["users"] = item
             else:
                 pass
+
+        print("DEBUG self.group_db: {}".format(self.group_db))
 
     #########__init__()######################################################
 

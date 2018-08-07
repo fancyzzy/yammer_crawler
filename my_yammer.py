@@ -99,11 +99,13 @@ class My_Yammer():
     ########get_group_users()#####################################
 
 
-    def get_user_info(self, user_id):
+    def get_user_info(self, user_id, group_id=None):
 
-        existed_users = self.get_group_users(group_id)
+        return self.my_db.get_user_info(user_id, group_id)
 
-        return
+    ##############get_user_info()##################################
+
+
 
 
 
