@@ -13,8 +13,6 @@ to bypass yammer authentication
 from selenium import webdriver
 from time import sleep
 from bs4 import BeautifulSoup
-import my_database
-import my_parser
 import json
 
 #Simulate keyboard input
@@ -120,16 +118,15 @@ class My_Crawler():
     ##########get_group_name()#####################
 
 
-
-    def download_all_messages(self, group_id, older_than_message_id=None, interval=5, n=None):
+    def download_all_messages(self, group_id, interval=5, older_than_message_id=None, n=None):
         '''
 
         download all the messages in the group
         continue to download until no new messages
         as one time only 20 messages allowed
         :param group_id: string, yammer group id
-        :param older_than_message_id: only download older messages than this
         :param interval: download interval
+        :param older_than_message_id: only download older messages than this
         :param n: download times
         :return: json liked dict
         '''
@@ -221,6 +218,7 @@ class My_Crawler():
         :param newer_than_message_id:
         :return: newer_json_result
         '''
+
 
         print("Start download newer messages than %s"%(newer_than_message_id))
         newer_json_result = None
@@ -400,7 +398,7 @@ if __name__ == '__main__':
 
     '''
     #download and save all messages in the group
-    result_json = my_crawler.download_all_messages(group_id, older_than_message_id=None, interval=5, n=None)
+    result_json = my_crawler.download_all_messages(group_id, interval=5, older_than_message_id=None, n=None)
     print("Debug messages result_json: {}".format(result_json))
     file_name = 'group_%s_messages.json'%(group_id)
     with open(file_name, 'w') as fb:

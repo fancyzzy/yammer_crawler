@@ -1,99 +1,107 @@
 #!/usr/bin/env python2
 #!encoding: utf-8
 
-#import selenium
-from selenium import webdriver
-import time
-
 import sys
+
+import my_database
+import my_crawler
 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
 
+
+class My_Yammer():
+    def __init__(self):
+        self.my_crawler = None
+        self.my_db = my_database.My_Database()
+
+    def main(self):
+        pass
+
+    def retrive_data(self):
+        pass
+
+    def pull_all_messages(self, group_id, interval=5):
+
+        print("start pull_all_messages, group_id = {}".format(group_id))
+        mc = my_crawler.My_Crawler(group_id)
+        all_messages = mc.download_all_messages(group_id, interval)
+
+        #save to db
+        if all_messages != None:
+            self.my_db.save(all_messages, 'message', group_id)
+            print("Messages data saved successfully.")
+            return True
+        else:
+            print("No messages data saved.")
+            return False
+
+    ############pull_all_messages()###############################
+
+
+    def pull_newer_messages(self, group_id, interval=5):
+
+        print("start pull_newer_messages, group_id = {}".format(group_id))
+        mc = my_crawler.My_Crawler(group_id)
+        existed_messages = self.my_db.get_group_messages(group_id)
+
+        newer_messages = None
+        if existed_messages != None:
+            newer_than_id = existed_messages["messages"][0]["id"]
+            newer_messages = mc.download_newer_messages(group_id, newer_than_id, interval)
+
+            #save to db
+            if newer_messages != None:
+                #merge newer_message to existed_messages
+                pass
+                self.my_db.update(existed_messages, newer_messages, group_id)
+                #self.my_db.save(all_messages, 'message', group_id)
+                print("Messages data saved successfully.")
+                return True
+            else:
+                print("No messages data saved.")
+                return False
+        else:
+            self.pull_all_messages(group_id, interval)
+
+
+
+    #################pull_newer_messages()#########################
+
+
+    def pull_all_users(self, group_id, interval=5):
+        mc = my_crawler.My_Crawler(group_id)
+        dict_users = mc.download_all_users(group_id, interval)
+
+        #save to db
+        if dict_users != None:
+            self.my_db.save(dict_users, 'user', group_id)
+            return True
+        else:
+            return False
+    ############pull_all_users()###############################
+
+    def get_group_name(self, group_id):
+        pass
+
+    def get_group_messages(self, group_id):
+        pass
+
+    def get_user_info(self, user_id):
+        pass
+
+
+
 if __name__ == '__main__':
 
-    print("start")
+    print("start my_yammer")
 
-    #profile
-    #profile_dir = r'C:\Users\tarzonz\AppData\Roaming\Mozilla\Firefox\Profiles\e6k753v5.default'
-    #profile = webdriver.FirefoxProfile(profile_dir)
-    #wd = webdriver.Firefox(profile)
-    #wd = webdriver.Firefox()
-    wd = webdriver.Chrome()
-    session_id = wd.session_id
-    exe_url = wd.command_executor._url
-    print("DEBUG session_id = {}, exe_url = {}".format(session_id, exe_url))
-    print("DEBUG id(wd) = {}".format(id(wd)))
+    email_add = ''
+    csl = ''
+    pwd = ''
 
-
-    url = r'https://www.baidu.com'
-    #need to input email and then csl and cip
-    ya_url = r'https://www.yammer.com/nokia.com/#/threads/inGroup?type=in_group&feedId=15273590'
-    #need to firstly use the above url to login yammer
-    jason_url = r'https://www.yammer.com/api/v1/messages/in_group/15273590.json'
-    #wd.maximize_window()
-
-    print("start open firefox")
-    wd.get(ya_url)
-    print("DEBUG wd.title: {}".format(wd.title))
-
-
-    print("start login")
-    login_email = wd.find_element_by_id("i0116")
-    login_email.send_keys("felix.zhang@nokia-sbell.com")
-    wd.find_element_by_id("idSIButton9").click()
-    #js_str = r'setTimeout(function(){document.getElementById("idSIButton9").click()},100)'
-    #wd.execute_script(js_str)
-
-
-    #handles
-    handles = wd.window_handles
-    print("DEBUG handles: {}".format(handles))
-    current_h = wd.current_window_handle
-    print("DEBUG current_handle: {}".format(current_h))
-
-    print("DEBUG start to wait")
-    #wd.implicitly_wait(60)
-
-    for i in range(10):
-        print(i)
-        time.sleep(1)
-    print("DEBUG wait over")
-
-
-    print("finish window")
-    #wd.switch_to.window(current_window)
-    #al = wd.switch_to_alert()
-    #print("DEBUG al.text = {}".al.text)
-    #al.send_keys("tarzonz")
-
-    handles = wd.window_handles
-    print("DEBUG handles: {}".format(handles))
-    current_h = wd.current_window_handle
-    print("DEBUG current_handle: {}".format(current_h))
-
-
-    print("Debug, after wait, id(wd) = {}".format(id(wd)))
-    ruan_url = "http://www.ruanyifeng.com/blog/"
-    newwindow = r'window.open("{}");'.format(jason_url)
-    #newwindow = r'window.open("{}");'.format(ruan_url)
-    wd.execute_script(newwindow)
-
-    handles = wd.window_handles
-    wd.switch_to.window(handles[-1])
-
-    print("wd.title: {}".format(wd.title))
-
-    #t1 = wd.find_element_by_css_selector('div:')
-    print("wd.page_source: {}".format(wd.page_source))
-    print("\n")
-    print("wd_page_source[-100:]: {}".format(wd.page_source[-100:]))
-
-    handles = wd.window_handles
-    current_h = wd.current_window_handle
-    print("handles: {}".format(handles))
-    print("current_handle: {}".format(current_h))
+    my_yammer = My_Yammer()
 
 
 
