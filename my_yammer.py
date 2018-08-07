@@ -88,14 +88,22 @@ class My_Yammer():
         exsited_messages = self.my_db.get_group_messages(group_id)
         #logic, algorithm
 
-
         return exsited_messages
     #############get_group_message()###############################
 
 
+    def get_group_users(self, group_id):
+
+        exsited_users = self.my_db.get_group_users(group_id)
+        return exsited_users
+    ########get_group_users()#####################################
+
 
     def get_user_info(self, user_id):
-        pass
+
+        existed_users = self.get_group_users(group_id)
+
+        return
 
 
 

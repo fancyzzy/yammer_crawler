@@ -8,11 +8,23 @@ import os
 import json
 
 DATA_PATH = os.path.join(os.getcwd(), 'data')
+GROUP_DB = 'groups.json'
+GROUP_DB_PATH = os.path.join(DATA_PATH, GROUP_DB)
 
 class My_Database():
     def __init__(self):
 
-        pass
+        self.group_db = None
+        for item in os.listdir(DATA_PATH):
+            if item.endswith('messages.json'):
+                self.group_db[item.split('_')[1]]["messages"] = item
+            elif item.endswith('users.json'):
+                self.group_db[item.split('_')[1]]["users"] = item
+            else:
+                pass
+
+    #########__init__()######################################################
+
 
     def update_group_messages(self, exsited_data, newer_data, group_id):
         '''
@@ -48,6 +60,8 @@ class My_Database():
             data_str = json.dumps(dict_data)
             fb.write(data_str)
 
+        self.group_db[group_id]["messages"] = file_name
+
     ############save_group_messages()################################
 
 
@@ -66,8 +80,9 @@ class My_Database():
             data_str = json.dumps(dict_data)
             fb.write(data_str)
 
-    ############save_group_users()################################
+        self.group_db[group_id]["users"] = file_name
 
+    ############save_group_users()################################
 
 
     def get_group_messages(self, group_id):
@@ -75,6 +90,7 @@ class My_Database():
 
         :param group_id:
         :return: dict
+        format like: https://www.yammer.com/api/v1/messages/in_group/15273590.json
         '''
 
         file_name = 'group_%s_messages.json'%(group_id)
@@ -95,6 +111,8 @@ class My_Database():
 
         :param group_id:
         :return: dict
+        format like: https://www.yammer.com/api/v1/users/in_group/15273590.json
+
         '''
 
         data_name = 'group_%s_users.json'%(group_id)
@@ -108,6 +126,26 @@ class My_Database():
         else:
             return None
     ################get_group_users()########################
+
+
+    def get_user_info(self, user_id, group_id=None):
+
+        if group_id == None:
+            for group_id in self.group_db.keys():
+                users_d = self.get_group_users(group_id)
+                for user_d in users_d["users"]:
+                    if user_id == user_d["id"]:
+                        return user_d
+
+        else:
+            users_d = self.get_group_users(group_id)
+            for user_d in users_d["users"]:
+                if user_id == user_d["id"]:
+                    return user_d
+
+        return None
+    #############get_user_info()#############################
+
 
 
 
