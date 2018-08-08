@@ -422,7 +422,7 @@ if __name__ == '__main__':
     #Test to download newer messages
     newer_than_message_id = '1126445002'
     newer_result_json = my_crawler.download_newer_messages(group_id, newer_than_message_id, interval=5)
-    print("DEBUG newer_result_json: {}".format(newer_result_json))
+    #print("DEBUG newer_result_json: {}".format(newer_result_json))
 
     print("done")
     my_crawler.quit()
