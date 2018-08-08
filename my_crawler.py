@@ -187,29 +187,26 @@ class My_Crawler():
             #print("DEBUG json_dict['messages'][-1]: {}, json_dict['messages'][-1]['id']: {}". \
             #    format(json_dict['messages'][-1], json_dict['messages'][-1]['id']))
 
+            #check to stop
+            if len(json_dict["messages"]) == 0:
+                print("Warning, no messages got due to some reason, dowload stopped")
+                break
 
             #concatenate json_str to json_result
             if json_result == None:
                 json_result = json_dict
             else:
-                if len(json_dict["messages"]) != 0:
-                    json_result["messages"].extend(json_dict["messages"])
+                json_result["messages"].extend(json_dict["messages"])
 
-                    extend_diff(json_result["references"], json_dict["references"])
-                    extend_diff(json_result["meta"]["followed_user_ids"], json_dict["meta"]["followed_user_ids"])
-                    extend_diff(json_result["meta"]["followed_references"], json_dict["meta"]["followed_references"])
-                else:
-                    print("Can't find more messages due to yammer api bug")
-                    break
+                extend_diff(json_result["references"], json_dict["references"])
+                extend_diff(json_result["meta"]["followed_user_ids"], json_dict["meta"]["followed_user_ids"])
+                extend_diff(json_result["meta"]["followed_references"], json_dict["meta"]["followed_references"])
 
             # Check to continue
             if json_dict["meta"]["older_available"]:
                 print("older available, sleep %d second.."%(interval))
                 sleep(interval)
                 last_message_id = json_dict["messages"][-1]["id"]
-                print("continue to download older messages than id: %s."%(last_message_id))
-                #print("DEBUG json_dict['messages'][-1]: {}, json_dict['messages'][-1]['id']: {}". \
-                #    format(json_dict['messages'][-1], json_dict['messages'][-1]['id']))
                 group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?older_than=%s'%(last_message_id)
             else:
                 print("No more messages, download finished")
@@ -242,6 +239,7 @@ class My_Crawler():
         #YAMMER_API_MESSAGE = 'https://www.yammer.com/api/v1/messages/in_group/'
         group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?newer_than=%s'%(newer_than_message_id)
 
+
         while 1:
             i += 1
             print("Download batch {}".format(i))
@@ -259,52 +257,35 @@ class My_Crawler():
 
             #print("DEBUG json_dict: {}".format(json_dict))
             if len(json_dict["messages"]) == 0:
-                print("No new messages so far")
+                print("No new messages found.")
                 break
 
             #concatenate json_str to newer_json_result
             if newer_json_result == None:
                 newer_json_result = json_dict
             else:
-                if len(json_dict["messages"]) != 0:
-                    #May have same messages
-                    extend_diff(newer_json_result["messages"], json_dict["messages"])
+                #May have same messages
+                extend_diff(newer_json_result["messages"], json_dict["messages"])
 
-                    extend_diff(newer_json_result["references"], json_dict["references"])
-                    extend_diff(newer_json_result["meta"]["followed_user_ids"],\
-                                json_dict["meta"]["followed_user_ids"])
-                    extend_diff(newer_json_result["meta"]["followed_references"],\
-                                json_dict["meta"]["followed_references"])
-                else:
-                    print("Can't find more messages due to yammer api bug")
-                    break
+                extend_diff(newer_json_result["references"], json_dict["references"])
+                extend_diff(newer_json_result["meta"]["followed_user_ids"],\
+                            json_dict["meta"]["followed_user_ids"])
+                extend_diff(newer_json_result["meta"]["followed_references"],\
+                            json_dict["meta"]["followed_references"])
 
             # Check to stop
-            if "older_available" not in json_dict["meta"].keys():
-                if len(json_dict["messages"]) < API_RESTRICT:
-                    print("No more newer messages, download finished")
-                    break
-                else:
-                    for message_dict in json_dict["messages"]:
-                        if message_dict["id"] == newer_than_message_id:
-                            print("Finding is over since newer_than_message_id got")
-                            break
-
+            if len(json_dict["messages"]) < API_RESTRICT:
+                print("No more newer messages, download finished")
+                break
             else:
-                if not json_dict["meta"]["older_available"]:
-                    print("No more messages, download finished, this shuold not happen")
-                    break
-                else:
-                    for message_dict in json_dict["messages"]:
-                        if message_dict["id"] == newer_than_message_id:
-                            print("Finding is over since newer_than_message_id got")
-                            break
-
+                for message_dict in json_dict["messages"]:
+                    if message_dict["id"] == newer_than_message_id:
+                        print("No more newer messages, download finished")
+                        break
 
             print("more newer messages available, sleep %d second.."%(interval))
             sleep(interval)
             last_message_id = json_dict["messages"][-1]["id"]
-            print("continue to download older messages than id: %s."%(last_message_id))
             group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?older_than=%s'%(last_message_id)
 
         return newer_json_result
