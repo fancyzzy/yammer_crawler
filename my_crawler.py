@@ -59,11 +59,23 @@ class My_Crawler():
         self.my_browser = webdriver.Chrome()
         print("Created my_browser: {}".format(self.my_browser))
 
+        self.login_ok = False
         self.trigger_login(group_id)
 
         #self.my_parser = my_parser.My_Parser()
         #self.my_database = my_database.My_Database()
     ############__init__()##############
+
+
+    def is_login_ok(self):
+        return self.login_ok
+    ##########is_login_ok()#############
+
+
+    def quit(self):
+        self.my_browser.quit()
+    ###############quit()###############
+
 
     def trigger_login(self, group_id):
         '''
@@ -73,9 +85,8 @@ class My_Crawler():
         '''
         #login
         print("start login")
-        print("DEBUG TRI: {}".format(TRIGGER_URL))
+        print("TRIGGER login url: {}".format(TRIGGER_URL))
         self.my_browser.get(TRIGGER_URL)
-        print("DEBUG wd.title: {}".format(self.my_browser.title))
 
         login_email = self.my_browser.find_element_by_id("i0116")
         login_email.send_keys(LOGIN_EMAIL)
@@ -90,9 +101,12 @@ class My_Crawler():
         #Simulate keyboard press:
         simulate_keyboard(LOGIN_CSL+LOGIN_PWD)
 
+        #here is a timer to denfend hanging loggin
+
         self.group_name = self.get_group_name(group_id)
         if self.group_name:
             print("login %s successful"%(self.group_name))
+            self.login_ok = True
         else:
             print("login failed!")
     ############trigger_login()###################
@@ -145,6 +159,7 @@ class My_Crawler():
         while 1:
             i += 1
             print("Download batch {}".format(i))
+            print("url: {}".format(group_messages_url))
 
             js_cmd = r'window.open("{}");'.format(group_messages_url)
             self.my_browser.execute_script(js_cmd)
@@ -219,7 +234,6 @@ class My_Crawler():
         :return: newer_json_result
         '''
 
-
         print("Start download newer messages than %s"%(newer_than_message_id))
         newer_json_result = None
         json_str = None
@@ -231,6 +245,7 @@ class My_Crawler():
         while 1:
             i += 1
             print("Download batch {}".format(i))
+            print("url: {}".format(group_messages_url))
 
             js_cmd = r'window.open("{}");'.format(group_messages_url)
             self.my_browser.execute_script(js_cmd)
@@ -241,6 +256,11 @@ class My_Crawler():
             soup = BeautifulSoup(self.my_browser.page_source, features="html.parser")
             json_str = soup.get_text("body")
             json_dict = json.loads(json_str)
+
+            #print("DEBUG json_dict: {}".format(json_dict))
+            if len(json_dict["messages"]) == 0:
+                print("No new messages so far")
+                break
 
             #concatenate json_str to newer_json_result
             if newer_json_result == None:
@@ -336,6 +356,7 @@ class My_Crawler():
         while 1:
             i += 1
             print("Download batch {}".format(i))
+            print("url: {}".format(group_users_url))
 
             js_cmd = r'window.open("{}");'.format(group_users_url)
             self.my_browser.execute_script(js_cmd)
@@ -369,7 +390,6 @@ class My_Crawler():
                 sleep(interval)
 
                 page_num = i+1
-                print("continue to download more users.")
                 group_users_url = YAMMER_GROUP_USERS + '%s.json'%(group_id) + '?page=%d'%(page_num)
             else:
                 print("No more users, download finished")
@@ -424,6 +444,7 @@ if __name__ == '__main__':
     print("DEBUG newer_result_json: {}".format(newer_result_json))
 
     print("done")
+    my_crawler.quit()
 
 
 

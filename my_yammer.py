@@ -14,9 +14,10 @@ sys.setdefaultencoding('utf8')
 
 
 class My_Yammer():
+
     def __init__(self):
-        self.my_crawler = None
         self.my_db = my_database.My_Database()
+    ##########__init__()################################
 
 
     def pull_all_messages(self, group_id, interval=5):
@@ -24,6 +25,7 @@ class My_Yammer():
         print("start pull_all_messages, group_id = {}".format(group_id))
         mc = my_crawler.My_Crawler(group_id)
         all_messages = mc.download_all_messages(group_id, interval)
+        mc.quit()
 
         #save to db
         if all_messages != None:
@@ -43,20 +45,23 @@ class My_Yammer():
         mc = my_crawler.My_Crawler(group_id)
         existed_messages = self.my_db.get_group_messages(group_id)
 
+        #Continue to download messages that are newer that the latest exsited message
         newer_messages = None
         if existed_messages != None:
             newer_than_id = existed_messages["messages"][0]["id"]
             newer_messages = mc.download_newer_messages(group_id, newer_than_id, interval)
+            mc.quit()
 
             #save to db
             if newer_messages != None:
                 #merge newer_message to existed_messages
                 self.my_db.update_group_messages(existed_messages, newer_messages, group_id)
-                print("Messages data updated successfully.")
+                print("Messages data updateded successfully.")
                 return True
             else:
-                print("No messages data updated.")
+                print("No messages data updateded.")
                 return False
+        #No exsited messages, start to download for all
         else:
             self.pull_all_messages(group_id, interval)
     #################pull_newer_messages()#########################
@@ -65,6 +70,7 @@ class My_Yammer():
     def pull_all_users(self, group_id, interval=5):
         mc = my_crawler.My_Crawler(group_id)
         dict_users = mc.download_all_users(group_id, interval)
+        mc.quit()
 
         #save to db
         if dict_users != None:
@@ -173,17 +179,18 @@ class My_Yammer():
         result_list = [[x,d_users[x][0],d_users[x][1]] for x in d_users.keys()]
         ranked_list = sorted(result_list, key=lambda x:x[1], reverse=True)
 
-
-
         #get user name by id
         user_info = self.get_group_users(group_id)
         for user in ranked_list:
             user_id = user[0]
-            user_name = user_info[user_id]["full_name"]
-            #Simple name
-            user_name = user_name.split(', ')[0].upper() +' '+ user_name.split(', ')[1].split(' ')[0]
-            user[0] = user_name
-
+            if user_id in user_info.keys():
+                user_name = user_info[user_id]["full_name"]
+                #Simple name
+                user_name = user_name.split(', ')[0].upper() +' '+ user_name.split(', ')[1].split(' ')[0]
+                user[0] = user_name
+            else:
+                print("warning, unknown user detected, need to download all users again")
+                user[0] = 'unknown_user'
 
         #print("ranked_list: {}".format(ranked_list))
         for item in ranked_list:
@@ -199,8 +206,6 @@ class My_Yammer():
 
 
 
-
-
 if __name__ == '__main__':
 
     print("start my_yammer")
@@ -212,9 +217,9 @@ if __name__ == '__main__':
 
     my_yammer = My_Yammer()
 
+    my_yammer.pull_newer_messages(group_id, interval=5)
+
     str_now = datetime.now().strftime("%Y/%m/%d")
     my_yammer.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
-
-
 
     print("done")
