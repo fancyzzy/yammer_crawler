@@ -1,2 +1,18 @@
 <h1>Hello Felix, this is Flask!</h1>
 <p>This is an index.html template</p>
+
+<p>A value from a list: {{ mylist }}</p>
+
+<p>
+    {% for item in mylist %}
+        <li>{{ item }}</li>
+    {% endfor %}
+</p>
+
+{% macro render_item(item) %}
+    <li>{{ item }}</li>
+{% endmacro %}
+
+<ul>
+    {{ render_item(mylist[0]) }}
+</ul>
