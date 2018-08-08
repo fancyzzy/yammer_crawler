@@ -2,9 +2,11 @@
 #!encoding: utf-8
 
 import sys
+from datetime import datetime
 
 import my_database
 import my_crawler
+
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -84,6 +86,10 @@ class My_Yammer():
 
 
     def get_group_messages(self, group_id):
+        '''
+        :param group_id:
+        :return: exsited_messages like https://www.yammer.com/api/v1/messages/in_group/15273590.json
+        '''
 
         exsited_messages = self.my_db.get_group_messages(group_id)
         #logic, algorithm
@@ -93,9 +99,18 @@ class My_Yammer():
 
 
     def get_group_users(self, group_id):
+        '''
+        exsited_users like https://www.yammer.com/api/v1/users/in_group/15273590.json
+        '''
 
         exsited_users = self.my_db.get_group_users(group_id)
-        return exsited_users
+
+        #convert to id:user_data dict
+        user_info = {}
+        for user in exsited_users["users"]:
+            user_info[user["id"]] = user
+
+        return user_info
     ########get_group_users()#####################################
 
 
@@ -104,6 +119,83 @@ class My_Yammer():
         return self.my_db.get_user_info(user_id, group_id)
 
     ##############get_user_info()##################################
+
+    #Game
+    def get_group_rank(self, group_id, letter_num=0, end_date=None, start_date=None):
+        '''
+        Get a sorted list which contatin user name, message num which is the key to rank
+
+        :param group_id:
+        :param letter_num: letter number of a message content
+        :param end_date:   liek '2018/08/07'
+        :param start_date: '2018/02/01'
+        :return: list
+        '''
+        print("Start show group rank with at least letter_num: {}, from date: {} to {}".\
+              format(letter_num, end_date, start_date))
+        users = self.get_group_users(group_id)
+
+        #{id:[total_message, post_message],...}
+        d_users = {}
+        #result_list = [[id,total_message_number, post_message_number],...]
+        result_list = []
+        n = 0
+        n_post = 0
+
+        messages = self.get_group_messages(group_id)
+        for message in messages["messages"]:
+
+            created_date = message["created_at"].split()[0]
+
+            if (start_date !=None) and (created_date < start_date):
+                break
+            if (end_date != None) and (created_date > end_date):
+                continue
+
+            sender_id = message["sender_id"]
+            content = message["body"]["plain"]
+            is_replied = message["replied_to_id"]
+            #message_type = message["message_type"]
+            #print("DEBUG id: {}, sender_id: {}, is_replied: {}".format(message["id"], sender_id, is_replied))
+
+            if len(content.split()) >= letter_num:
+                n += 1
+                if sender_id in d_users.keys():
+                    d_users[sender_id][0] += 1
+                else:
+                    d_users.setdefault(sender_id,[1,0])
+                #is a post
+                if is_replied == None:
+                    d_users[sender_id][1] += 1
+                    n_post += 1
+
+        result_list = d_users.keys()
+        result_list = [[x,d_users[x][0],d_users[x][1]] for x in d_users.keys()]
+        ranked_list = sorted(result_list, key=lambda x:x[1], reverse=True)
+
+
+
+        #get user name by id
+        user_info = self.get_group_users(group_id)
+        for user in ranked_list:
+            user_id = user[0]
+            user_name = user_info[user_id]["full_name"]
+            #Simple name
+            user_name = user_name.split(', ')[0].upper() +' '+ user_name.split(', ')[1].split(' ')[0]
+            user[0] = user_name
+
+
+        #print("ranked_list: {}".format(ranked_list))
+        for item in ranked_list:
+            print(item)
+        if start_date == None:
+            start_date = 'the ever beginning.'
+        g_name = self.get_group_name(group_id)
+        print("In the group '{}',".format(g_name))
+        print("Totally {} messages for {} posts from date {} back to {}".format(n, n_post, end_date, start_date))
+
+        return ranked_list
+    #############get_group_rank()##################################################
 
 
 
@@ -116,8 +208,12 @@ if __name__ == '__main__':
     email_add = ''
     csl = ''
     pwd = ''
+    group_id = '15273590'
 
     my_yammer = My_Yammer()
+
+    str_now = datetime.now().strftime("%Y/%m/%d")
+    my_yammer.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
 
 
 
