@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> Home Page</title>
+</head>
+<body>
+<h1> Welcome to the Flask Tutorial</h1>
+<h4>Please Register to get the tutorials</h4>
+<form method="post" action="/FlaskTutorial">
+    <input type="text" name="email" placeholder="Enter Email Address" />
+    <br><br>
+    <input type="password" name="pass" placeholder="Password"/>
+    <input type="submit" value="Submit" name="ok"/>
+</form>
+
+<br><br>
+
+<form method="post" action="/yammer_state">
+    <input type="submit" value="Get Yammer State" name="OK1"/>
+</form>
+
+<br><br>
+
+<form method="post" action="/download">
+    <input type="submit" value="Download newer message" name="download"/>
+</form>
+</body>
+</html>
