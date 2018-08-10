@@ -3,6 +3,8 @@
 
 import sys
 from datetime import datetime
+import openpyxl
+import os
 
 import my_database
 import my_crawler
@@ -181,9 +183,6 @@ class My_Yammer():
 
     ##############get_user_info()##################################
 
-    def get_user_detailed_info(self, user_id, group_id=None):
-        pass
-
 
     #Game
     def get_group_rank(self, group_id, letter_num=0, end_date=None, start_date=None):
@@ -240,6 +239,7 @@ class My_Yammer():
 
         #get user name by id
         user_info = self.get_group_users(group_id)
+        unknown_num = 0
         for user in ranked_list:
             user_id = user[0]
             if user_id in user_info.keys():
@@ -248,8 +248,11 @@ class My_Yammer():
                 user_name = user_name.split(', ')[0].upper() +' '+ user_name.split(', ')[1].split(' ')[0]
                 user[0] = user_name
             else:
-                print("warning, unknown user detected, need to download all users again")
-                user[0] = 'unknown_user'
+                print("warning, unknown user: {} detected".format(user_id))
+                unknown_url = 'https://www.yammer.com/api/v1/users/' + str(user_id) + '.json'
+                print("check {} to find this user".format(unknown_url))
+                user[0] = 'unknown user'
+                unknown_num += 1
 
         #print("ranked_list: {}".format(ranked_list))
         for item in ranked_list:
@@ -259,10 +262,71 @@ class My_Yammer():
         g_name = self.get_group_name(group_id)
         print("In the group '{}',".format(g_name))
         print("Totally {} messages for {} posts from date {} back to {}".format(n, n_post, end_date, start_date))
+        if unknown_num > 0:
+            print("%d unknown user."%(unknown_num))
 
         return ranked_list
     #############get_group_rank()##################################################
 
+
+    def export_users_details_to_excel(self,group_id):
+        '''
+        export users details to an easy readable xlsx file
+
+        :param group_id:
+        :return:
+        '''
+        print("Export to users details to excel of group: {}".format(group_id))
+        dict_list = self.my_db.get_users_details(group_id)
+
+        dest_folder = my_database.DATA_PATH
+
+        total_num = len(dict_list)
+
+        if total_num == 0:
+            print("No user details found for group {}".format(group_id))
+            return False
+
+        else:
+            wb = openpyxl.Workbook()
+            sheet = wb.active
+            sheet.title = "Users"
+            column_fields = ['Id', 'State', 'Full_Name', 'Job_Title', 'Department', \
+                             'Email', 'Phone', 'Photo', 'Interests', 'Expertise', 'Stats']
+
+
+            field_num = len(column_fields)
+            start_row = 5
+            start_col = 2
+
+            #Write the first header
+            for j in range(field_num):
+                sheet.cell(row=start_row, column=start_col+j).value = column_fields[j]
+
+            #Write data
+            for i in range(total_num):
+                # user_dict format see:
+                # https://www.yammer.com/api/v1/users/1568779836.json
+                user_d = dict_list[i]
+
+                for j in range(field_num):
+                    field = column_fields[j].lower()
+                    if field == "phone":
+                        val = str(user_d["contact"]["phone_numbers"])
+                    elif field == "photo":
+                        val = str(user_d["mugshot_url"])
+                    else:
+                        val = str(user_d[field])
+                    sheet.cell(row=start_row+1+i, column=start_col+j).value = val
+
+
+            excel_name = 'group_%s_users.xlsx'%(group_id)
+            folder_path = os.path.join(my_database.DATA_PATH, 'group_%s'%(group_id))
+            excel_path =os.path.join(folder_path, excel_name)
+            wb.save(filename=excel_path)
+            print("Export finished at {}".format(excel_path))
+            return True
+    ################export_users_details_to_excel()########################################
 
 
 if __name__ == '__main__':
@@ -285,7 +349,10 @@ if __name__ == '__main__':
 
     group_id = '12562314' #Qingdao
     #my_yammer.pull_all_users_and_details(group_id, interval=5)
-    my_yammer.pull_newer_messages(group_id, interval=5)
+    #my_yammer.pull_newer_messages(group_id, interval=5)
+    #str_now = datetime.now().strftime("%Y/%m/%d")
+    #my_yammer.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
 
+    my_yammer.export_users_details_to_excel(group_id)
 
     print("done")

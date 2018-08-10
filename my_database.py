@@ -188,15 +188,36 @@ class My_Database():
         return None
     #############get_user_info()#############################
 
-    def  get_user_detailed_info(self, user_id, group_id=None):
+    def  get_users_details(self, group_id):
         '''
         Find a user's detailed info from search in the specific gr
 
         :param user_id:
         :param group_id:
-        :return:
+        :return: list containing user dict element
         '''
-        pass
+        dict_list = []
+        if group_id == None:
+            return
+
+        folder_name = 'group_' + '%s'%(group_id)
+        folder_path = os.path.join(DATA_PATH, folder_name)
+
+        if os.path.exists(folder_path):
+            for user_json in os.listdir(folder_path):
+                if user_json.endswith('.json'):
+                    with open(os.path.join(folder_path, user_json), 'r') as fb:
+                        str_json = fb.read()
+                        dict_json = json.loads(str_json)
+                        dict_list.append(dict_json)
+
+            return dict_list
+        else:
+            print("folder {} not found.".format(folder_path))
+            return None
+    ###########get_user_detailed_info()#####################
+
+
 
 
 
