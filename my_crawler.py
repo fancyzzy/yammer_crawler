@@ -76,6 +76,10 @@ class My_Crawler():
         self.my_browser.quit()
     ###############quit()###############
 
+    def close(self):
+        self.my_browser.close()
+    ###############close()##############
+
 
     def trigger_login(self, group_id):
         '''
@@ -394,8 +398,9 @@ class My_Crawler():
         full_name = ''
         job_title = ''
         state = '' #if this id is still available
-        user_url = user_dict["url"]
-        print("Start download user info")
+        user_url = user_dict["url"] + '.json'
+        user_name = user_dict["full_name"]
+        print("Start download user detail of {}".format(user_name))
         print("url: {}".format(user_url))
 
         js_cmd = r'window.open("{}");'.format(user_url)
@@ -414,7 +419,10 @@ class My_Crawler():
 
         # close this window tag
         self.my_browser.close()
+        handles = self.my_browser.window_handles
+        self.my_browser.switch_to.window(handles[0])
 
+        sleep(interval)
         return json_dict
 
     ###########download_all_user_details()############################################

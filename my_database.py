@@ -91,7 +91,7 @@ class My_Database():
     ############save_group_users()################################
 
 
-    def save_group_users_details(self, dict_data, group_id):
+    def save_group_user_details(self, dict_data, group_id):
         '''
         Save each user detailed json file
 
@@ -100,19 +100,23 @@ class My_Database():
         :return:
         '''
         user_id = dict_data["id"]
-        file_name = 'user_%s.json'%(user_id)
+        user_name = dict_data["full_name"]
+        name_l = user_name.split(', ')
+        user_name = name_l[0].upper() + '_' + name_l[1].split()[0]
+
+        file_name = 'user_%s_%s.json'%(user_name, user_id)
         folder_name = 'group_%s'%(group_id)
         folder_path = os.path.join(DATA_PATH, folder_name)
+        file_path = ''
 
         if not os.path.exists(folder_path):
             os.mkdir(folder_path)
         else:
-            file_path = os.path.join(folder_path, folder_name)
+            file_path = os.path.join(folder_path, file_name)
             with open(file_path, 'w') as fb:
                 data_str = json.dumps(dict_data)
                 fb.write(data_str)
-
-        print("user details is saved in {}".format(folder_path))
+            print("user details is saved in {}".format(file_path))
     #################save_group_users_details()###################
 
 

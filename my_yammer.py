@@ -100,13 +100,32 @@ class My_Yammer():
 
         mc = my_crawler.My_Crawler(group_id)
         #download each user's detailed info
+        n = 0
         for user_dict in existed_users["users"]:
-            dict_user = mc.download_user_details(user_dict,interval)
-            self.my_db.save_group_users_details(dict_user, group_id)
+
+            print("Download batch: {}".format(n+1))
+            dict_user = mc.download_user_details(user_dict)
+            self.my_db.save_group_user_details(dict_user, group_id)
+            n += 1
 
         mc.quit()
         return True
     ###############pull_all_users_details()####################
+
+
+    def pull_all_users_and_details(self, group_id, interval=5):
+        '''
+        download all users general info json and each user details json
+
+        :param group_id:
+        :param interval:
+        :return:
+        '''
+
+        self.pull_all_users(group_id, interval)
+        self.pull_all_users_details(group_id, interval)
+
+    ################pull_all_users_and_details()################
 
 
     def get_group_name(self, group_id):
@@ -256,9 +275,14 @@ if __name__ == '__main__':
 
     my_yammer = My_Yammer()
 
-    my_yammer.pull_newer_messages(group_id, interval=5)
+    #my_yammer.pull_newer_messages(group_id, interval=5)
 
-    str_now = datetime.now().strftime("%Y/%m/%d")
-    my_yammer.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
+    #str_now = datetime.now().strftime("%Y/%m/%d")
+    #my_yammer.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
+
+    #my_yammer.pull_all_users_details(group_id, interval=5)
+
+    group_id = '12562314' #Qingdao
+    my_yammer.pull_all_users_and_details(group_id, interval=5)
 
     print("done")
