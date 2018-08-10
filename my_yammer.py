@@ -42,13 +42,13 @@ class My_Yammer():
     def pull_newer_messages(self, group_id, interval=5):
 
         print("start pull_newer_messages, group_id = {}".format(group_id))
-        mc = my_crawler.My_Crawler(group_id)
         existed_messages = self.my_db.get_group_messages(group_id)
 
         #Continue to download messages that are newer that the latest existed message
         newer_messages = None
         if existed_messages != None:
             newer_than_id = existed_messages["messages"][0]["id"]
+            mc = my_crawler.My_Crawler(group_id)
             newer_messages = mc.download_newer_messages(group_id, newer_than_id, interval)
             mc.quit()
 
@@ -63,6 +63,7 @@ class My_Yammer():
                 return False
         #No existed messages, start to download for all
         else:
+            print("No existed data, pull all the messages")
             self.pull_all_messages(group_id, interval)
     #################pull_newer_messages()#########################
 
@@ -283,6 +284,8 @@ if __name__ == '__main__':
     #my_yammer.pull_all_users_details(group_id, interval=5)
 
     group_id = '12562314' #Qingdao
-    my_yammer.pull_all_users_and_details(group_id, interval=5)
+    #my_yammer.pull_all_users_and_details(group_id, interval=5)
+    my_yammer.pull_newer_messages(group_id, interval=5)
+
 
     print("done")

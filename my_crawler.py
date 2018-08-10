@@ -200,11 +200,18 @@ class My_Crawler():
             if json_result == None:
                 json_result = json_dict
             else:
-                json_result["messages"].extend(json_dict["messages"])
+                if "messages" in json_dict.keys():
+                    json_result["messages"].extend(json_dict["messages"])
+                else:
+                    print("Error, there is no message key!")
+                    break
 
-                extend_diff(json_result["references"], json_dict["references"])
-                extend_diff(json_result["meta"]["followed_user_ids"], json_dict["meta"]["followed_user_ids"])
-                extend_diff(json_result["meta"]["followed_references"], json_dict["meta"]["followed_references"])
+                if "feferences" in json_dict.keys():
+                    extend_diff(json_result["references"], json_dict["references"])
+                if "followed_user_ids" in json_dict["meta"].keys():
+                    extend_diff(json_result["meta"]["followed_user_ids"], json_dict["meta"]["followed_user_ids"])
+                if "followed_references" in json_dict["meta"].keys():
+                    extend_diff(json_result["meta"]["followed_references"], json_dict["meta"]["followed_references"])
 
             # Check to continue
             if json_dict["meta"]["older_available"]:
