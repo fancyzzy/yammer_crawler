@@ -45,7 +45,7 @@ class My_Yammer():
         mc = my_crawler.My_Crawler(group_id)
         existed_messages = self.my_db.get_group_messages(group_id)
 
-        #Continue to download messages that are newer that the latest exsited message
+        #Continue to download messages that are newer that the latest existed message
         newer_messages = None
         if existed_messages != None:
             newer_than_id = existed_messages["messages"][0]["id"]
@@ -61,13 +61,20 @@ class My_Yammer():
             else:
                 print("No messages data updateded.")
                 return False
-        #No exsited messages, start to download for all
+        #No existed messages, start to download for all
         else:
             self.pull_all_messages(group_id, interval)
     #################pull_newer_messages()#########################
 
 
     def pull_all_users(self, group_id, interval=5):
+        '''
+        download all the user general info
+
+        :param group_id:
+        :param interval:
+        :return:
+        '''
         mc = my_crawler.My_Crawler(group_id)
         dict_users = mc.download_all_users(group_id, interval)
         mc.quit()
@@ -80,40 +87,61 @@ class My_Yammer():
             return False
     ############pull_all_users()###############################
 
+    def pull_all_users_details(self, group_id, interval=5):
+        '''
+        download all the users detailed info and save each one into a json file
+
+        :param group_id:
+        :param interval:
+        :return:
+        '''
+        print("Start to download each user detailed info of group {}".format(group_id))
+        existed_users = self.my_db.get_group_users(group_id)
+
+        mc = my_crawler.My_Crawler(group_id)
+        #download each user's detailed info
+        for user_dict in existed_users["users"]:
+            dict_user = mc.download_user_details(user_dict,interval)
+            self.my_db.save_group_users_details(dict_user, group_id)
+
+        mc.quit()
+        return True
+    ###############pull_all_users_details()####################
+
 
     def get_group_name(self, group_id):
 
-        exsited_messages = self.my_db.get_group_messages(group_id)
-        if exsited_messages == None:
-            print("Group data is not exsited yet")
+        existed_messages = self.my_db.get_group_messages(group_id)
+        if existed_messages == None:
+            print("Group data is not existed yet")
         else:
-            return exsited_messages["meta"]["feed_name"]
+            return existed_messages["meta"]["feed_name"]
     ########get_group_name###########################################
 
 
     def get_group_messages(self, group_id):
         '''
         :param group_id:
-        :return: exsited_messages like https://www.yammer.com/api/v1/messages/in_group/15273590.json
+        :return: existed_messages like https://www.yammer.com/api/v1/messages/in_group/15273590.json
         '''
 
-        exsited_messages = self.my_db.get_group_messages(group_id)
+        existed_messages = self.my_db.get_group_messages(group_id)
         #logic, algorithm
 
-        return exsited_messages
+        return existed_messages
     #############get_group_message()###############################
 
 
     def get_group_users(self, group_id):
         '''
-        exsited_users like https://www.yammer.com/api/v1/users/in_group/15273590.json
+        existed_users like https://www.yammer.com/api/v1/users/in_group/15273590.json
         '''
 
-        exsited_users = self.my_db.get_group_users(group_id)
+        existed_users = self.my_db.get_group_users(group_id)
 
         #convert to id:user_data dict
         user_info = {}
-        for user in exsited_users["users"]:
+        for user in existed_users["users"]:
             user_info[user["id"]] = user
 
         return user_info
@@ -121,10 +149,21 @@ class My_Yammer():
 
 
     def get_user_info(self, user_id, group_id=None):
+        '''
+        Get one user general information
+
+        :param user_id:
+        :param group_id:
+        :return:
+        '''
 
         return self.my_db.get_user_info(user_id, group_id)
 
     ##############get_user_info()##################################
+
+    def get_user_detailed_info(self, user_id, group_id=None):
+        pass
+
 
     #Game
     def get_group_rank(self, group_id, letter_num=0, end_date=None, start_date=None):

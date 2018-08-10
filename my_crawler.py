@@ -322,7 +322,8 @@ class My_Crawler():
         download all the users in the group
         :param group_id: string, yammer group id
         :param interval: download interval
-        :return: json liked dict
+        :return: json liked dict see:
+        https://www.yammer.com/api/v1/users/in_group/15273590.json
         '''
         print("Start download all users")
 
@@ -379,6 +380,45 @@ class My_Crawler():
         return json_result
 
     ###########download_all_users()###################################################
+
+
+    def download_user_details(self, user_dict, interval=5):
+        '''
+        download one user detailed information from a exsited user dict
+
+        :param user_dict: Contatins all user info in key 'url' value
+        see: https://www.yammer.com/api/v1/users/1640338967.json
+        :return: details of all users in this group as json files for each user
+        '''
+
+        full_name = ''
+        job_title = ''
+        state = '' #if this id is still available
+        user_url = user_dict["url"]
+        print("Start download user info")
+        print("url: {}".format(user_url))
+
+        js_cmd = r'window.open("{}");'.format(user_url)
+        self.my_browser.execute_script(js_cmd)
+
+        # handles
+        handles = self.my_browser.window_handles
+        self.my_browser.switch_to.window(handles[-1])
+        current_h = self.my_browser.current_window_handle
+
+        soup = BeautifulSoup(self.my_browser.page_source, features="html.parser")
+        json_str = soup.get_text("body")
+
+        # Convert to python dict from a json like string
+        json_dict = json.loads(json_str)
+
+        # close this window tag
+        self.my_browser.close()
+
+        return json_dict
+
+    ###########download_all_user_details()############################################
+
 
 
     def download_messages_in_conversation(self, thread_id):
