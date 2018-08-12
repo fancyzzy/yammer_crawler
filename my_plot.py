@@ -7,6 +7,7 @@ Use matplotlib to draw  figures of  post and updates points
 
 import matplotlib.pyplot as plt
 import numpy as np
+from adjustText import adjust_text
 
 
 
@@ -49,14 +50,45 @@ if __name__ == '__main__':
     plt.ylabel("Comments")
     plt.xticks([x for x in range(max(post_list) + 20) if x % 10 == 0])
     plt.yticks([y for y in range(max(comment_list) + 20) if y % 10 == 0])
-    ax1.scatter(post_list, comment_list,s=175, c = color, alpha=0.5, marker='o')
-    ax1.colorbar()
 
+    ax1.scatter(post_list, comment_list,s=175, c = color, alpha=0.5, marker='o', cmap=plt.get_cmap("Spectral"))
+
+    old_x = old_y = 1e9
+    thresh = .1
+    labels = []
     for i in range(len(name_list)):
+
+        #avoid overlapped annotate texts
+        d = ((post_list[i]-old_x)**2+(comment_list[i]-old_y)**2)**(.5)
+
+        flip = 1
+        if d < .1: flip=-2
+        label = (name_list[i] + "\n(%d,%d)"%(post_list[i], comment_list[i]))
+        labels.append(label)
+
+        '''
+        plt.annotate(label,
+                     xy=(post_list[i], comment_list[i]),
+                     xytext=(-20*flip, 20*flip),
+                     textcoords = 'offset points', ha = 'right', va = 'bottom',
+                     bbox = dict(boxstyle = 'round, pad=0.5', fc='yellow', alpha=0.5),
+                     arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+        old_x = post_list[i]
+        old_y = comment_list[i]
+        '''
         plt.annotate((name_list[i]+"\n(%d,%d)"%(post_list[i],comment_list[i])),\
-                     xy=(post_list[i], comment_list[i]), xytext=(post_list[i]+0.5, comment_list[i]+0.1),\
-                     fontsize=8)
+        xy=(post_list[i], comment_list[i]), xytext=(post_list[i]+0.5, comment_list[i]+0.1),\
+        fontsize=8)
+
+    texts = []
+    #xs = np.arange(post_list)
+    #ys = np.arange(comment_list)
+
+    '''
+    for x, y, s in zip(post_list, comment_list, labels):
+        texts.append(plt.text(x, y, s))
+    adjust_text(texts, only_move='y', arrowprops=dict(arrowstyle="->", color='r', lw=0.5))
+    '''
 
     plt.show()
-
     print("Done")
