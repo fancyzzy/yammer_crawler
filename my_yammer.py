@@ -9,6 +9,10 @@ import os
 import my_database
 import my_crawler
 
+#solve flask multithread trigger
+#import pythoncom
+#pythoncom.CoInitialize()
+
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -225,14 +229,17 @@ class My_Yammer():
 
             if len(content.split()) >= letter_num:
                 n += 1
-                if sender_id in d_users.keys():
-                    d_users[sender_id][0] += 1
-                else:
-                    d_users.setdefault(sender_id,[1,0])
+                if sender_id not in d_users.keys():
+                    d_users.setdefault(sender_id,[0,0])
+
                 #is a post
                 if is_replied == None:
                     d_users[sender_id][1] += 1
                     n_post += 1
+                #is an update
+                else:
+                    d_users[sender_id][0] += 1
+
 
         result_list = d_users.keys()
         result_list = [[x,d_users[x][0],d_users[x][1]] for x in d_users.keys()]
