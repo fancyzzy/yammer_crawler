@@ -162,11 +162,11 @@ class My_Yammer():
         existed_users = self.my_db.get_group_users(group_id)
 
         #convert to id:user_data dict
-        user_info = {}
+        users_info = {}
         for user in existed_users["users"]:
-            user_info[user["id"]] = user
+            users_info[user["id"]] = user
 
-        return user_info
+        return users_info
     ########get_group_users()#####################################
 
 
@@ -207,6 +207,7 @@ class My_Yammer():
         n_post = 0
 
         messages = self.get_group_messages(group_id)
+
         for message in messages["messages"]:
 
             created_date = message["created_at"].split()[0]
@@ -237,7 +238,7 @@ class My_Yammer():
         result_list = [[x,d_users[x][0],d_users[x][1]] for x in d_users.keys()]
         ranked_list = sorted(result_list, key=lambda x:x[1], reverse=True)
 
-        #get user name by id
+        #get user name by id and append user id and  photo
         user_info = self.get_group_users(group_id)
         unknown_num = 0
         for user in ranked_list:
@@ -247,12 +248,20 @@ class My_Yammer():
                 #Simple name
                 user_name = user_name.split(', ')[0].upper() +' '+ user_name.split(', ')[1].split(' ')[0]
                 user[0] = user_name
+                user_photo = user_info[user_id]["mugshot_url"]
+                user.append(user_photo)
             else:
                 print("warning, unknown user: {} detected".format(user_id))
                 unknown_url = 'https://www.yammer.com/api/v1/users/' + str(user_id) + '.json'
                 print("check {} to find this user".format(unknown_url))
                 user[0] = 'unknown user'
+                none_photo = "https://mug0.assets-yammer.com/mugshot/images/48x48/no_photo.png"
+                user.append(none_photo)
                 unknown_num += 1
+
+            print("DEBUG user_id: {}".format(user_id))
+            #insert id for future index purpose
+            user.insert(0, user_id)
 
         #print("ranked_list: {}".format(ranked_list))
         for item in ranked_list:
@@ -264,6 +273,8 @@ class My_Yammer():
         print("Totally {} messages for {} posts from date {} back to {}".format(n, n_post, end_date, start_date))
         if unknown_num > 0:
             print("%d unknown user."%(unknown_num))
+
+        #rank_field = ["Id", "Full_Name", "Updats", "Posts", "Photo"]
 
         return ranked_list
     #############get_group_rank()##################################################
@@ -294,7 +305,6 @@ class My_Yammer():
             column_fields = ['Id', 'State', 'Full_Name', 'Job_Title', 'Department', \
                              'Email', 'Phone', 'Photo', 'Interests', 'Expertise', 'Stats']
 
-
             field_num = len(column_fields)
             start_row = 5
             start_col = 2
@@ -318,7 +328,6 @@ class My_Yammer():
                     else:
                         val = str(user_d[field])
                     sheet.cell(row=start_row+1+i, column=start_col+j).value = val
-
 
             excel_name = 'group_%s_users.xlsx'%(group_id)
             folder_path = os.path.join(my_database.DATA_PATH, 'group_%s'%(group_id))
@@ -350,9 +359,9 @@ if __name__ == '__main__':
     group_id = '12562314' #Qingdao
     #my_yammer.pull_all_users_and_details(group_id, interval=5)
     #my_yammer.pull_newer_messages(group_id, interval=5)
-    #str_now = datetime.now().strftime("%Y/%m/%d")
-    #my_yammer.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
+    str_now = datetime.now().strftime("%Y/%m/%d")
+    my_yammer.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
 
-    my_yammer.export_users_details_to_excel(group_id)
+    #my_yammer.export_users_details_to_excel(group_id)
 
     print("done")
