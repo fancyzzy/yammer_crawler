@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Comments and Posts Rank</title>
 </head>
 <body>
+<br>
+<br>
 <h3>The rank list: </h3>
+
+<img src="data:image/png;base64,{{ my_data }}">
 <p>
     {% for item in mylist %}
-        <li>{{ item }}</li>
+        <li>{{ item[1] }} {{ item[2] }}</li>
     {% endfor %}
 </p>
 

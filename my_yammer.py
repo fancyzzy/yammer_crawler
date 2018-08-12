@@ -363,7 +363,7 @@ if __name__ == '__main__':
 
     #my_yammer.pull_all_users_details(group_id, interval=5)
 
-    group_id = '12562314' #Qingdao
+    #group_id = '12562314' #Qingdao
     #my_yammer.pull_all_users_and_details(group_id, interval=5)
     #my_yammer.pull_newer_messages(group_id, interval=5)
     str_now = datetime.now().strftime("%Y/%m/%d")

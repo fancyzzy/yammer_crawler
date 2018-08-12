@@ -7,7 +7,9 @@ Use matplotlib to draw  figures of  post and updates points
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
+SAVE_PATH = os.path.join(os.getcwd(),'static')
 
 def draw_figure(data_list, threshold, date_end, date_start):
     '''
@@ -27,7 +29,7 @@ def draw_figure(data_list, threshold, date_end, date_start):
     name_list = [x[1] for x in data_list if x[2]>threshold or x[3]>threshold]
     photo_list= [x[-1] for x in data_list if x[2]>threshold or x[3]>threshold]
 
-    color = np.arctan2(comment_list, post_list)
+    color = np.arctan2(post_list, comment_list)
     #print("DEBUG color: {}".format(color))
 
     fig= plt.figure()
@@ -35,12 +37,12 @@ def draw_figure(data_list, threshold, date_end, date_start):
 
     title_str = "Comments and Posts from %s to %s"%(date_end, date_start)
     ax1.set_title(title_str)
-    plt.xlabel("Posts")
-    plt.ylabel("Comments")
-    plt.xticks([x for x in range(max(post_list) + 20) if x % 10 == 0])
-    plt.yticks([y for y in range(max(comment_list) + 20) if y % 10 == 0])
+    plt.ylabel("Posts")
+    plt.xlabel("Comments")
+    plt.yticks([x for x in range(max(post_list) + 20) if x % 10 == 0])
+    plt.xticks([y for y in range(max(comment_list) + 20) if y % 10 == 0])
 
-    ax1.scatter(post_list, comment_list,s=175, c = color, alpha=0.5, marker='o', cmap=plt.get_cmap("Spectral"))
+    ax1.scatter(comment_list, post_list, s=175, c = color, alpha=0.5, marker='o', cmap=plt.get_cmap("Spectral"))
 
     old_x = old_y = 1e9
     thresh = .1
@@ -48,31 +50,96 @@ def draw_figure(data_list, threshold, date_end, date_start):
     for i in range(len(name_list)):
 
         #avoid overlapped annotate texts
-        d = ((post_list[i]-old_x)**2+(comment_list[i]-old_y)**2)**(.5)
+        d = ((comment_list[i]-old_x)**2+(post_list[i]-old_y)**2)**(.5)
 
         flip = 1
         if d < .1: flip=-2
-        label = (name_list[i] + "\n(%d,%d)"%(post_list[i], comment_list[i]))
+        label = (name_list[i] + "\n(%d,%d)"%(comment_list[i], post_list[i]))
         labels.append(label)
 
-        '''
-        plt.annotate(label,
-                     xy=(post_list[i], comment_list[i]),
-                     xytext=(-20*flip, 20*flip),
-                     textcoords = 'offset points', ha = 'right', va = 'bottom',
-                     bbox = dict(boxstyle = 'round, pad=0.5', fc='yellow', alpha=0.5),
-                     arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
-        old_x = post_list[i]
-        old_y = comment_list[i]
-        '''
-
-        plt.annotate((name_list[i]+"\n(%d,%d)"%(post_list[i],comment_list[i])),\
-        xy=(post_list[i], comment_list[i]), xytext=(post_list[i]+0.5, comment_list[i]+0.1),\
+        plt.annotate(label,\
+        xy=(comment_list[i], post_list[i]), xytext=(comment_list[i]+0.5, post_list[i]+0.1),\
         fontsize=8)
 
     plt.show()
+    return plt
 ################draw_figure()##################################################################
 
+
+
+def get_figure_url(data_list, group_id, threshold, date_end, date_start):
+    '''
+
+    :param data_list: [[id,name,updates,posts,photo],...]
+    :param threshold:
+    :param date_end:
+    :param date_start:
+    :return:
+    '''
+    if date_start == None:
+        date_start = "beginning"
+    if date_end == None:
+        date_end = "Now"
+    post_list= [x[3] for x in data_list if x[2]>threshold or x[3]>threshold]
+    comment_list = [x[2] for x in data_list if x[2]>threshold or x[3]>threshold]
+    name_list = [x[1] for x in data_list if x[2]>threshold or x[3]>threshold]
+    photo_list= [x[-1] for x in data_list if x[2]>threshold or x[3]>threshold]
+
+    color = np.arctan2(post_list, comment_list)
+    #print("DEBUG color: {}".format(color))
+
+    fig= plt.figure()
+    ax1 = fig.add_subplot(111)
+
+    title_str = "Comments and Posts from %s to %s"%(date_end, date_start)
+    ax1.set_title(title_str)
+    plt.ylabel("Posts")
+    plt.xlabel("Comments")
+    plt.yticks([x for x in range(max(post_list) + 20) if x % 10 == 0])
+    plt.xticks([y for y in range(max(comment_list) + 20) if y % 10 == 0])
+
+    ax1.scatter(comment_list, post_list, s=175, c = color, alpha=0.5, marker='o', cmap=plt.get_cmap("Spectral"))
+
+    old_x = old_y = 1e9
+    thresh = .1
+    labels = []
+    for i in range(len(name_list)):
+
+        #avoid overlapped annotate texts
+        d = ((comment_list[i]-old_x)**2+(post_list[i]-old_y)**2)**(.5)
+
+        flip = 1
+        if d < .1: flip=-2
+        label = (name_list[i] + "\n(%d,%d)"%(comment_list[i], post_list[i]))
+        labels.append(label)
+
+        plt.annotate(label,\
+        xy=(comment_list[i], post_list[i]), xytext=(comment_list[i]+0.5, post_list[i]+0.1),\
+        fontsize=8)
+
+    #convert to fig
+    '''
+    sio = BytesIO()
+    plt.savefig(sio, format='png')
+    data = base64.encodebytes(sio.getvalue()).decode()
+    plt.close()
+    return data
+    '''
+
+    return plt
+    '''
+    if not os.path.exists(SAVE_PATH):
+        os.mkdir(SAVE_PATH)
+
+    png_name = "group_%s_"%(group_id) + "rank.png"
+    png_path = os.path.join(SAVE_PATH, png_name)
+    plt.savefig(png_path, format='png', dpi=100)
+    plt.close()
+    print("saved")
+    return png_name
+    '''
+
+################get_figure_url()##################################################################
 
 
 if __name__ == '__main__':
@@ -93,7 +160,8 @@ if __name__ == '__main__':
     threshold = 0
     date_start = None
     date_end = None
-
     draw_figure(example_list, threshold, date_end, date_start)
 
+    group_id = '12562314'
+    #get_figure_url(example_list, group_id, threshold, date_end, date_start)
     print("Done")

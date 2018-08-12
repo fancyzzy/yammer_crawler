@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#coding=utf-8
 
 '''
 This is for the webpage
@@ -20,6 +21,8 @@ from wtforms.validators import Email, Required
 import my_yammer
 from datetime import datetime
 import time
+import my_plot
+from flask import send_file
 
 
 app = Flask(__name__)
@@ -50,17 +53,87 @@ def success():
     else:
         print("not POST")
 
+
+#return the rank page!
 @app.route('/yammer_state', methods=['POST'])
 def state():
     if request.method == 'POST':
+        '''
         ya = my_yammer.My_Yammer()
-
         #yammer_result = ["a", "b", "c"]
-        yammer_result = ya
         str_now = datetime.now().strftime("%Y/%m/%d")
         group_id = '15273590'
         yammer_result = ya.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
-        return render_template('yammer_rank.html', mylist=yammer_result)
+
+        img_url = my_plot.get_figure_url(yammer_result, group_id, 0, str_now, None)
+        '''
+
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        from io import BytesIO
+        import base64
+
+        ya = my_yammer.My_Yammer()
+        # yammer_result = ["a", "b", "c"]
+        str_now = datetime.now().strftime("%Y/%m/%d")
+        group_id = '15273590'
+        yammer_result = ya.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
+        #return render_template('yammer_rank.html', mylist=yammer_result, img_name=img_url)
+        # 转成图片的步骤
+        plt =  my_plot.get_figure_url(yammer_result, group_id, 0, str_now, None)
+        sio = BytesIO()
+        plt.savefig(sio, format='png')
+        data = base64.b64encode(sio.getvalue()).decode()
+        plt.close()
+        return render_template('yammer_rank.html', mylist=yammer_result, my_data=data)
+
+@app.route('/fig/<cropzonekey>')
+def fig(cropzonekey):
+    #draw figure
+    ya = my_yammer.My_Yammer()
+    #yammer_result = ["a", "b", "c"]
+    str_now = datetime.now().strftime("%Y/%m/%d")
+    group_id = '15273590'
+    yammer_result = ya.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
+    img_url = my_plot.get_figure_url(yammer_result, 0, str_now, None)
+    return send_file(img_url, mimetype='image/png')
+
+############
+@app.route("/jianshu")
+def jianshu():
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from io import BytesIO
+    import base64
+
+    ya = my_yammer.My_Yammer()
+    # yammer_result = ["a", "b", "c"]
+    str_now = datetime.now().strftime("%Y/%m/%d")
+    group_id = '15273590'
+    yammer_result = ya.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
+    plt =  my_plot.get_figure_url(yammer_result, group_id, 0, str_now, None)
+
+    # 转成图片的步骤
+    sio = BytesIO()
+    plt.savefig(sio, format='png')
+    data = base64.b64encode(sio.getvalue()).decode()
+    print(data)
+    html = '''
+       <html>
+           <body>
+               <img src="data:image/png;base64,{}" />
+           </body>
+        <html>
+    '''
+    plt.close()
+    # 记得关闭，不然画出来的图是重复的
+    #return html.format(data)
+    return render_template('yammer_rank.html', mylist=yammer_result, my_data=data)
+    #format的作用是将data填入{}
+############
+
 
 @app.route('/download', methods=['POST'])
 def start_download():
