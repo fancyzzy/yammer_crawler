@@ -24,6 +24,11 @@ import time
 import my_plot
 from flask import send_file
 
+#import matplotlib
+# matplotlib.use('Agg')
+#import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
 
 app = Flask(__name__)
 manager = Manager(app)
@@ -36,12 +41,6 @@ def index():
 @app.route('/yammer_rank', methods=['POST'])
 def get_rank():
     if request.method == 'POST':
-
-        import matplotlib
-        #matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        from io import BytesIO
-        import base64
 
         ya = my_yammer.My_Yammer()
         # yammer_result = ["a", "b", "c"]
@@ -79,8 +78,10 @@ def get_rank():
 
         yammer_result = ya.get_group_rank(group_id, letter_num, least_comment_num, end_date, start_date)
         #return render_template('yammer_rank.html', mylist=yammer_result, img_name=img_url)
+        print("DEBUG start to created png")
         # 转成图片的步骤
         plt =  my_plot.draw_figure(yammer_result, 0, end_date, start_date)
+        print("Get plt id: {}".format(id(plt)))
         sio = BytesIO()
         plt.savefig(sio, format='png', dpi=100)
         data = base64.b64encode(sio.getvalue()).decode()
@@ -90,6 +91,7 @@ def get_rank():
             start_date = "the ever biggning"
         if end_date == None:
             end_date = "now"
+        print("Start to render_template, yammer_rank.html")
 
         return render_template('yammer_rank.html', mylist=yammer_result, my_data=data,\
                                least_comment_num=least_comment_num, end_date=end_date, \

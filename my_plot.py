@@ -5,9 +5,12 @@
 Use matplotlib to draw  figures of  post and updates points
 '''
 
-import matplotlib.pyplot as plt
+
 import numpy as np
 import os
+
+#import matplotlib
+#matplotlib.use('Agg')
 
 SAVE_PATH = os.path.join(os.getcwd(),'static')
 
@@ -20,6 +23,11 @@ def draw_figure(data_list, threshold, date_end, date_start):
     :param date_start:
     :return:
     '''
+
+    import matplotlib.pyplot as plt
+
+
+    print("DEBUG start draw_figure")
     if date_start == None:
         date_start = "beginning"
     if date_end == None:
@@ -29,12 +37,16 @@ def draw_figure(data_list, threshold, date_end, date_start):
     name_list = [x[1] for x in data_list if x[2]>threshold or x[3]>threshold]
     photo_list= [x[-1] for x in data_list if x[2]>threshold or x[3]>threshold]
 
+    print("start color")
     color = np.arctan2(post_list, comment_list)
     #print("DEBUG color: {}".format(color))
 
+    print("start plt.figure with plt id:{}".format(id(plt)))
     #fig= plt.figure(figsize=(8.0, 5.0))
     #Set fig size/resolution
     fig= plt.figure(figsize=(11.0, 7.5))
+
+    print("start fig.add_subplot")
     ax1 = fig.add_subplot(111)
 
 
@@ -46,6 +58,8 @@ def draw_figure(data_list, threshold, date_end, date_start):
     plt.xticks([y for y in range(max(comment_list) + 20) if y % 5 == 0])
     plt.ylim(-10, max(post_list)+10)
     plt.xlim(-10, max(comment_list)+10)
+
+    print("Start to scatter")
 
     p_scatter = ax1.scatter(comment_list, post_list, s=155, c = color, alpha=0.5, marker='o', cmap=plt.get_cmap("Spectral"))
 
@@ -66,6 +80,8 @@ def draw_figure(data_list, threshold, date_end, date_start):
     #Delete right and top spines
     ax1.spines['top'].set_color('none')
     ax1.spines['right'].set_color('none')
+
+    print("Return plt, id: {}".format(id(plt)))
 
     return plt
 ################draw_figure()##################################################################
@@ -98,7 +114,6 @@ if __name__ == '__main__':
     date_start = None
     date_end = None
     plt =  draw_figure(example_list, threshold, date_end, date_start)
-
     plt.show()
     #plt.savefig("test.png", dpi=200)
 

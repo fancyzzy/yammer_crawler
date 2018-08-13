@@ -27,7 +27,7 @@ class My_Database():
             else:
                 pass
 
-        print("DEBUG self.group_db: {}".format(self.group_db))
+        #print("DEBUG self.group_db: {}".format(self.group_db))
 
     #########__init__()######################################################
 

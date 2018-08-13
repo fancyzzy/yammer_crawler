@@ -217,7 +217,6 @@ class My_Yammer():
             created_date = message["created_at"].split()[0]
 
             if (start_date !=None) and (created_date < start_date):
-                print("DEBUG break")
                 break
             if (end_date != None) and (created_date > end_date):
                 continue
@@ -267,13 +266,9 @@ class My_Yammer():
                 user.append(none_photo)
                 unknown_num += 1
 
-            print("DEBUG user_id: {}".format(user_id))
             #insert id for future index purpose
             user.insert(0, user_id)
 
-        #print("ranked_list: {}".format(ranked_list))
-        for item in ranked_list:
-            print(item)
         if start_date == None:
             start_date = 'the ever beginning.'
         group_name = self.get_group_name(group_id)
@@ -370,8 +365,10 @@ if __name__ == '__main__':
     #my_yammer.pull_all_users_and_details(group_id, interval=5)
     #my_yammer.pull_newer_messages(group_id, interval=5)
     str_now = datetime.now().strftime("%Y/%m/%d")
-    my_yammer.get_group_rank(group_id, letter_num=0, least_comment_num=40, end_date=str_now, start_date=None)
+    ranked_list = my_yammer.get_group_rank(group_id, letter_num=0, least_comment_num=40, end_date=str_now, start_date=None)
 
     #my_yammer.export_users_details_to_excel(group_id)
+    for item in ranked_list:
+        print(item)
 
     print("done")
