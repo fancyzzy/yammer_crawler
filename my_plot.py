@@ -86,6 +86,7 @@ def draw_figure(data_list, threshold, date_end, date_start):
     return plt
 ################draw_figure()##################################################################
 
+
 if __name__ == '__main__':
 
     example_list = [[1639993032, u'LI Ellen', 54, 87, u'https://mug0.assets-yammer.com/mugshot/images/48x48/5h0BJ82WH7kQHlN3HJVbnrXTSMPBTfP1'],

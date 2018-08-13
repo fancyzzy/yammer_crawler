@@ -30,12 +30,23 @@ from flask import send_file
 from io import BytesIO
 import base64
 
+import os
+
 app = Flask(__name__)
 manager = Manager(app)
 
 @app.route('/')
 def index():
     return render_template('login.html')
+
+@app.route('/login2', methods=['POST'])
+def login2():
+    print("this is login2")
+    if request.method == 'GET':
+        print("download")
+    else:
+        print("haha, request.method: {}".format(request.method))
+    return render_template('login2.html')
 
 #return the rank page!
 @app.route('/yammer_rank', methods=['POST'])
@@ -82,21 +93,22 @@ def get_rank():
         # 转成图片的步骤
         plt =  my_plot.draw_figure(yammer_result, 0, end_date, start_date)
         print("Get plt id: {}".format(id(plt)))
-        sio = BytesIO()
-        plt.savefig(sio, format='png', dpi=100)
-        data = base64.b64encode(sio.getvalue()).decode()
-        plt.close()
+
 
         if start_date == None:
             start_date = "the ever biggning"
         if end_date == None:
             end_date = "now"
-        print("Start to render_template, yammer_rank.html")
+
+        sio = BytesIO()
+        plt.savefig(sio, format='png', dpi=100)
+        data = base64.b64encode(sio.getvalue()).decode()
+        plt.close()
+
 
         return render_template('yammer_rank.html', mylist=yammer_result, my_data=data,\
                                least_comment_num=least_comment_num, end_date=end_date, \
                                start_date=start_date, letter_num=letter_num)
-
 
 
 @app.route('/user/<name>')
