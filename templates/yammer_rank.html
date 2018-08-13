@@ -7,14 +7,19 @@
 <body>
 <br>
 <br>
-<h3>The rank list: </h3>
-
 <img src="data:image/png;base64,{{ my_data }}">
-<p>
+
+<h2>The Following is the rank list of who had sent comments more than {{ least_comment_num }} </h2>
+<h3>Date: {{ end_date }} to {{ start_date }} </h3>
+<h3>Message Character number: {{ letter_num }} </h3>
+
+
+No.  &nbsp&nbsp Name   &nbsp&nbsp Comment Number
+<ol>
     {% for item in mylist %}
-        <li>{{ item[1] }} {{ item[2] }}</li>
+        <li>{{ item[1] }}     &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp     {{ item[2] }}</li>
     {% endfor %}
-</p>
+</ol>
 
 </body>
 </html>

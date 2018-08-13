@@ -189,7 +189,7 @@ class My_Yammer():
 
 
     #Game
-    def get_group_rank(self, group_id, letter_num=0, end_date=None, start_date=None):
+    def get_group_rank(self, group_id, letter_num=0, least_comment_num=0, end_date=None, start_date=None):
         '''
         Get a sorted list which contatin user name, message num which is the key to rank
 
@@ -217,6 +217,7 @@ class My_Yammer():
             created_date = message["created_at"].split()[0]
 
             if (start_date !=None) and (created_date < start_date):
+                print("DEBUG break")
                 break
             if (end_date != None) and (created_date > end_date):
                 continue
@@ -228,7 +229,6 @@ class My_Yammer():
             #print("DEBUG id: {}, sender_id: {}, is_replied: {}".format(message["id"], sender_id, is_replied))
 
             if len(content.split()) >= letter_num:
-                n += 1
                 if sender_id not in d_users.keys():
                     d_users.setdefault(sender_id,[0,0])
 
@@ -239,10 +239,11 @@ class My_Yammer():
                 #is an update
                 else:
                     d_users[sender_id][0] += 1
+                    n += 1
 
 
         result_list = d_users.keys()
-        result_list = [[x,d_users[x][0],d_users[x][1]] for x in d_users.keys()]
+        result_list = [[x,d_users[x][0],d_users[x][1]] for x in d_users.keys() if d_users[x][0] >= least_comment_num]
         ranked_list = sorted(result_list, key=lambda x:x[1], reverse=True)
 
         #get user name by id and append user id and  photo
@@ -275,9 +276,10 @@ class My_Yammer():
             print(item)
         if start_date == None:
             start_date = 'the ever beginning.'
-        g_name = self.get_group_name(group_id)
-        print("In the group '{}',".format(g_name))
-        print("Totally {} messages for {} posts from date {} back to {}".format(n, n_post, end_date, start_date))
+        group_name = self.get_group_name(group_id)
+        print("In the group '{}',".format(group_name))
+        print("Totally {} comments and  {} posts from date {} back to {}".format(n, n_post, end_date, start_date))
+        print("Where {} people sent at least {} comments".format(len(result_list), least_comment_num))
         if unknown_num > 0:
             print("%d unknown user."%(unknown_num))
 
@@ -353,6 +355,7 @@ if __name__ == '__main__':
     csl = ''
     pwd = ''
     group_id = '15273590'
+    group_id = '12562314' #Qingdao
 
     my_yammer = My_Yammer()
 
@@ -367,7 +370,7 @@ if __name__ == '__main__':
     #my_yammer.pull_all_users_and_details(group_id, interval=5)
     #my_yammer.pull_newer_messages(group_id, interval=5)
     str_now = datetime.now().strftime("%Y/%m/%d")
-    my_yammer.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
+    my_yammer.get_group_rank(group_id, letter_num=0, least_comment_num=40, end_date=str_now, start_date=None)
 
     #my_yammer.export_users_details_to_excel(group_id)
 
