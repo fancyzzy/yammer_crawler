@@ -54,10 +54,17 @@ def draw_figure(data_list, threshold, date_end, date_start):
     ax1.set_title(title_str)
     plt.ylabel("Post Number")
     plt.xlabel("Comment Number")
-    plt.yticks([x for x in range(max(post_list) + 20) if x % 5 == 0])
-    plt.xticks([y for y in range(max(comment_list) + 20) if y % 5 == 0])
-    plt.ylim(-10, max(post_list)+10)
-    plt.xlim(-10, max(comment_list)+10)
+    max_y = 100
+    max_x = 100
+    if post_list:
+        max_y = max(post_list)
+    if comment_list:
+        max_x = max(comment_list)
+
+    plt.yticks([x for x in range(max_y + 20) if x % 5 == 0])
+    plt.xticks([y for y in range(max_x + 20) if y % 5 == 0])
+    plt.ylim(-10, max_y+10)
+    plt.xlim(-10, max_x+10)
 
     print("Start to scatter")
 
@@ -115,7 +122,7 @@ if __name__ == '__main__':
     date_start = None
     date_end = None
     plt =  draw_figure(example_list, threshold, date_end, date_start)
-    plt.show()
+    #plt.show()
     #plt.savefig("test.png", dpi=200)
 
     print("Done")

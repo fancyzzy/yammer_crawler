@@ -5,18 +5,15 @@
     <title>Comments and Posts Rank</title>
 </head>
 <body>
+<input type="button" name="Submit" value="Back" onclick="javascript:window.history.back();"/>
 <br>
 <br>
 <img src="data:image/png;base64,{{ my_data }}">
-<h2>The Following is the rank list of who had sent comments more than {{ least_comment_num }} </h2>
-<p>Date: {{ end_date }} to {{ start_date }} </p>
-<p>Message Character number: {{ letter_num }} </p>
-
-
+<h2>The rank list: </h2>
 No.  &nbsp&nbsp Name   &nbsp&nbsp Comment Number
 <ol>
     {% for item in mylist %}
-        <li>{{ item[1] }}     &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp     {{ item[2] }}</li>
+        <li>{{ item[1] }}     &nbsp&nbsp&nbsp&nbsp     {{ item[2] }}</li>
     {% endfor %}
 </ol>
 

@@ -43,9 +43,12 @@ class My_Database():
 
         #input to the head
         exsited_data["messages"][:0] = newer_data["messages"]
-        exsited_data["references"][:0] = newer_data["references"]
-        exsited_data["meta"]["followed_user_ids"][:0] = newer_data["meta"]["followed_user_ids"]
-        exsited_data["meta"]["followed_references"][:0] = newer_data["meta"]["followed_references"]
+        if "references" in newer_data.keys():
+            exsited_data["references"][:0] = newer_data["references"]
+        if "followed_user_ids" in newer_data["meta"].keys():
+            exsited_data["meta"]["followed_user_ids"][:0] = newer_data["meta"]["followed_user_ids"]
+        if "followed_references" in newer_data["meta"].keys():
+            exsited_data["meta"]["followed_references"][:0] = newer_data["meta"]["followed_references"]
 
         self.save_group_messages(exsited_data, group_id)
     ##############update()################################################

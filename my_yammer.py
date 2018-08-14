@@ -62,7 +62,7 @@ class My_Yammer():
             if newer_messages != None:
                 #merge newer_message to existed_messages
                 self.my_db.update_group_messages(existed_messages, newer_messages, group_id)
-                print("Messages data updateded successfully.")
+                print("{} New messages data updateded successfully.".format(len(newer_messages)))
                 return True
             else:
                 print("No messages data updateded.")
@@ -189,19 +189,21 @@ class My_Yammer():
 
 
     #Game
-    def get_group_rank(self, group_id, letter_num=0, least_comment_num=0, end_date=None, start_date=None):
+    def get_group_rank(self, group_id, letter_num=1, least_comment_num=1, end_date=None, start_date=None):
         '''
         Get a sorted list which contatin user name, message num which is the key to rank
+        Only return those users who had sent messages. For those not sent even one message,
+        The return list does not contatin them
 
         :param group_id:
         :param letter_num: letter number of a message content
+        :param least_comment_num: number of messages sent
         :param end_date:   liek '2018/08/07'
         :param start_date: '2018/02/01'
         :return: list
         '''
-        print("Start show group rank with at least letter_num: {}, from date: {} to {}".\
-              format(letter_num, end_date, start_date))
-        users = self.get_group_users(group_id)
+        print("Start show group rank with at least letter_num: {}, least_comment_num: {}, from date: {} to {}".\
+              format(letter_num, least_comment_num, end_date, start_date))
 
         #{id:[total_message, post_message],...}
         d_users = {}
@@ -241,7 +243,6 @@ class My_Yammer():
                     n += 1
 
 
-        result_list = d_users.keys()
         result_list = [[x,d_users[x][0],d_users[x][1]] for x in d_users.keys() if d_users[x][0] >= least_comment_num]
         ranked_list = sorted(result_list, key=lambda x:x[1], reverse=True)
 
@@ -350,7 +351,7 @@ if __name__ == '__main__':
     csl = ''
     pwd = ''
     group_id = '15273590'
-    group_id = '12562314' #Qingdao
+    #group_id = '12562314' #Qingdao
 
     my_yammer = My_Yammer()
 
@@ -365,7 +366,7 @@ if __name__ == '__main__':
     #my_yammer.pull_all_users_and_details(group_id, interval=5)
     #my_yammer.pull_newer_messages(group_id, interval=5)
     str_now = datetime.now().strftime("%Y/%m/%d")
-    ranked_list = my_yammer.get_group_rank(group_id, letter_num=0, least_comment_num=40, end_date=str_now, start_date=None)
+    ranked_list = my_yammer.get_group_rank(group_id, letter_num=0, least_comment_num=1, end_date=str_now, start_date=None)
 
     #my_yammer.export_users_details_to_excel(group_id)
     for item in ranked_list:

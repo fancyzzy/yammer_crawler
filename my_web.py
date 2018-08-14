@@ -27,8 +27,6 @@ from flask import send_file
 #import matplotlib
 # matplotlib.use('Agg')
 #import matplotlib.pyplot as plt
-from io import BytesIO
-import base64
 
 import os
 
@@ -39,14 +37,20 @@ manager = Manager(app)
 def index():
     return render_template('login.html')
 
-@app.route('/login2', methods=['POST'])
+@app.route('/login', methods=['POST'])
 def login2():
-    print("this is login2")
+    print("this is get yammmer newer function")
     if request.method == 'GET':
         print("download")
     else:
         print("haha, request.method: {}".format(request.method))
-    return render_template('login2.html')
+        print("sleep 3 seconds")
+        #time.sleep(3)
+        group_id = '15273590'
+        ya = my_yammer.My_Yammer()
+        ya.pull_newer_messages(group_id, interval=5)
+        print("done")
+    return render_template('login.html')
 
 #return the rank page!
 @app.route('/yammer_rank', methods=['POST'])
@@ -100,15 +104,15 @@ def get_rank():
         if end_date == None:
             end_date = "now"
 
+        from io import BytesIO
+        import base64
+
         sio = BytesIO()
         plt.savefig(sio, format='png', dpi=100)
         data = base64.b64encode(sio.getvalue()).decode()
-        plt.close()
+        #plt.close()
 
-
-        return render_template('yammer_rank.html', mylist=yammer_result, my_data=data,\
-                               least_comment_num=least_comment_num, end_date=end_date, \
-                               start_date=start_date, letter_num=letter_num)
+        return render_template('yammer_rank.html', mylist=yammer_result, my_data=data)
 
 
 @app.route('/user/<name>')
