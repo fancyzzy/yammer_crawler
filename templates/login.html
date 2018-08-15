@@ -21,14 +21,21 @@
     <br>
     Comment number >=
     <input type="text" id="id_comment_num" name="least_comment_num" oninput="value=value.replace(/[^\d]/g,'')"/>
-
+    <br>
+    final comment number =
+    <input type="text" id="id_final_comment_num" name="final_comment_num" oninput="value=value.replace(/[^\d]/g,'')"/>
+    <br>
+    display top x labels=
+    <input type="text" id="id_show_top" name="show_top" oninput="value=value.replace(/[^-,\d]/g,'')"/>
     <br><br>
     <input type="submit" value="Get Yammer Rank" name="get_rank"/>
 </form>
 <br><br>
+<!--
 <form method="post" action="/login">
     <input type="submit" value="Download newer message" name="start_download"/>
 </form>
+-->
 
 <script>
     window.onload = function(){
@@ -40,6 +47,8 @@
         p_end_date.value=year+"/"+month+"/"+day;
         document.getElementById("id_letter_num").value=1
         document.getElementById("id_comment_num").value=1
+        document.getElementById("id_final_comment_num").value=100
+        document.getElementById("id_show_top").value=10
     };
 </script>
 
