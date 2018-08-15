@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <title> Yammer Rank Home Page</title>
     <script type="text/javascript"></script>
-    <link href="/favicon.ico" rel="icon" type="image/x-icon" />
+    <link href="/static/favicon.ico" rel="icon" type="image/x-icon" />
 </head>
 
 <body>
 <h1> Welcome to Yammer Rank</h1>
-<h4>Choose end date and start date to find out the result</h4>
+<h4>Select group, end date and start date to get the rank result</h4>
 <form method="post" action="/yammer_rank">
+    <br>
+    group name
+    <select name="sel_group" id="id_sel_group">
+        {% for  group in groups %}
+            <option value = {{ group[1] }}> {{ group[0] }}</option>
+        {% endfor %}
+    </select>
+    <br>
     from date
     <input type="date" id="id_end_date" name="end_date" placeholder="Enter end date"/>
     to

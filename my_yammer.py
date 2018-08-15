@@ -188,6 +188,11 @@ class My_Yammer():
     ##############get_user_info()##################################
 
 
+    def get_groups(self):
+        return self.my_db.get_all_groups_name_id()
+    ##################get_current_group_names()####################
+
+
     #Game
     def get_group_rank(self, group_id, letter_num=1, least_comment_num=1, end_date=None, start_date=None):
         '''
@@ -364,7 +369,7 @@ if __name__ == '__main__':
 
     #group_id = '12562314' #Qingdao
     #my_yammer.pull_all_users_and_details(group_id, interval=5)
-    #my_yammer.pull_newer_messages(group_id, interval=5)
+    my_yammer.pull_newer_messages(group_id, interval=5)
     str_now = datetime.now().strftime("%Y/%m/%d")
     ranked_list = my_yammer.get_group_rank(group_id, letter_num=0, least_comment_num=1, end_date=str_now, start_date=None)
 

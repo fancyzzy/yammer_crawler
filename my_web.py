@@ -14,7 +14,6 @@ from flask import abort
 from flask_script import Manager
 from flask import render_template
 
-from wtforms import Form
 from wtforms import StringField, SubmitField
 from wtforms.validators import Email, Required
 
@@ -35,7 +34,12 @@ manager = Manager(app)
 
 @app.route('/')
 def index():
-    return render_template('login.html')
+
+    ya = my_yammer.My_Yammer()
+    groups = ya.get_groups()
+    print("DEBUG groups: {}".format(groups))
+
+    return render_template('login.html', groups=groups)
 
 @app.route('/login', methods=['POST'])
 def login2():
@@ -53,22 +57,28 @@ def login2():
     return render_template('login.html')
 
 #return the rank page!
-@app.route('/yammer_rank', methods=['POST'])
+@app.route('/yammer_rank', methods=['POST', 'GET'])
 def get_rank():
-    if request.method == 'POST':
 
-        ya = my_yammer.My_Yammer()
+    end_date = None
+    start_date = None
+    letter_num = 1
+    least_comment_num = 1
+    final_comment_num = 50
+    show_top = 10
+    group_id = '15273590'
+
+    if request.method == 'POST':
         # yammer_result = ["a", "b", "c"]
         #str_now = datetime.now().strftime("%Y/%m/%d")
-        group_id = '15273590'
-        #group_id = '12562314'
-
         end_date = request.form['end_date']
         start_date = request.form['start_date']
         letter_num  = request.form['letter_num']
         least_comment_num = request.form['least_comment_num']
         final_comment_num = request.form['final_comment_num']
         show_top = request.form['show_top']
+        group_id = request.form['sel_group']
+        print("DEBUG group_id :{}".format(group_id))
 
         if letter_num.isdigit():
             letter_num = int(letter_num)
@@ -81,8 +91,6 @@ def get_rank():
         else:
             least_comment_num = 1
 
-        #print("Debug end_date: {}, start_date: {}".format(end_date, start_date))
-
         if start_date == "":
             start_date = None
         else:
@@ -93,28 +101,39 @@ def get_rank():
         else:
             end_date = end_date.replace('-','/')
 
-        yammer_result = ya.get_group_rank(group_id, letter_num, least_comment_num, end_date, start_date)
-        #return render_template('yammer_rank.html', mylist=yammer_result, img_name=img_url)
-        print("DEBUG start to created png")
-        # 转成图片的步骤
-        plt =  my_plot.draw_figure(yammer_result, 0, end_date, start_date, final_comment_num, show_top)
-        print("Get plt id: {}".format(id(plt)))
+    if request.method == 'GET':
+        print("GET yammer_rank")
+        end_date = None
+        start_date = None
+        letter_num  = 1
+        least_comment_num = 1
+        final_comment_num = 50
+        show_top = 10
 
+    # group_id = '15273590'
+    # group_id = '12562314'
+    ya = my_yammer.My_Yammer()
+    yammer_result = ya.get_group_rank(group_id, letter_num, least_comment_num, end_date, start_date)
+    # return render_template('yammer_rank.html', mylist=yammer_result, img_name=img_url)
+    print("DEBUG start to created png")
+    # 转成图片的步骤
+    plt = my_plot.draw_figure(yammer_result, 0, end_date, start_date, final_comment_num, show_top)
+    print("Get plt id: {}".format(id(plt)))
 
-        if start_date == None:
-            start_date = "the ever biggning"
-        if end_date == None:
-            end_date = "now"
+    if start_date == None:
+        start_date = "the ever biggning"
+    if end_date == None:
+        end_date = "now"
 
-        from io import BytesIO
-        import base64
+    from io import BytesIO
+    import base64
 
-        sio = BytesIO()
-        plt.savefig(sio, format='png', dpi=100)
-        data = base64.b64encode(sio.getvalue()).decode()
-        #plt.close()
+    sio = BytesIO()
+    plt.savefig(sio, format='png', dpi=100)
+    data = base64.b64encode(sio.getvalue()).decode()
+    # plt.close()
 
-        return render_template('yammer_rank.html', mylist=yammer_result, my_data=data)
+    return render_template('yammer_rank.html', mylist=yammer_result, my_data=data)
 
 
 @app.route('/user/<name>')
@@ -124,12 +143,6 @@ def user(name):
     name = None
     return render_template('user.html', user_name=name)
 
-
-
-class Name_Form(Form):
-    name = StringField('What is your name?', validators=[Required()])
-    email = StringField('What is your email?', validators=[Email()])
-    submit = SubmitField('Submit')
 
 
 if __name__ == '__main__':

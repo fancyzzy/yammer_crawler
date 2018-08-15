@@ -27,9 +27,35 @@ class My_Database():
             else:
                 pass
 
-        #print("DEBUG self.group_db: {}".format(self.group_db))
+        print("my database have group data: {}".format(self.group_db))
 
     #########__init__()######################################################
+
+    def get_group_db(self):
+        return self.group_db
+
+    ############get_group_db()###############################################
+
+    def get_group_name(self, group_id):
+
+        existed_messages = self.get_group_messages(group_id)
+        if existed_messages == None:
+            print("Group data is not existed yet")
+        else:
+            return existed_messages["meta"]["feed_name"]
+    ########get_group_name###########################################
+
+
+    def get_all_groups_name_id(self):
+
+        group_names = []
+        for group_id in self.get_group_db().keys():
+            group_name = self.get_group_name(group_id)
+            group_names.append((group_name, group_id))
+
+        return group_names
+    ############get_downloaded_group_names()###########################
+
 
 
     def update_group_messages(self, exsited_data, newer_data, group_id):
@@ -223,9 +249,9 @@ class My_Database():
 
 
 
-
-
-
-
 if __name__ == '__main__':
+    my_db = My_Database()
+    group_names = my_db.get_all_groups_name_id()
+    print("DEBUG now we have group_names: {}".format(group_names))
+
     pass
