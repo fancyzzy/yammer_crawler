@@ -35,6 +35,12 @@
     <br>
     display top x labels=
     <input type="text" id="id_show_top" name="show_top" oninput="value=value.replace(/[^-,\d]/g,'')"/>
+    <br>
+    Rank based on post number=
+    <select id="id_rank_for_post" name="rank_for_post">
+        <option value = 0> False</option>
+        <option value = 1> True</option>
+    </select>
     <br><br>
     <input type="submit" value="Get Yammer Rank" name="get_rank"/>
 </form>

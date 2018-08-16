@@ -9,7 +9,10 @@ Use matplotlib to draw  figures of  post and updates points
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from adjustText import adjust_text
+#from adjustText import adjust_text
+
+from matplotlib import cbook
+from matplotlib.cbook import get_sample_data
 
 #import matplotlib
 #matplotlib.use('Agg')
@@ -62,7 +65,7 @@ def text_plotter(text, x_data, y_data, text_positions, txt_width,txt_height, fin
 
 
 
-def draw_figure(data_list, threshold, date_end, date_start, final_comment_number, show_top=10):
+def draw_figure(data_list, threshold, date_end, date_start, final_comment_number, show_top=10, group_name=None):
     '''
 
     :param data_list: [[id,name,updates,posts,photo],...]
@@ -104,10 +107,15 @@ def draw_figure(data_list, threshold, date_end, date_start, final_comment_number
     ax1 = fig.add_subplot(111)
 
 
-    title_str = "Comments and Posts from %s to %s"%(date_end, date_start)
-    ax1.set_title(title_str)
-    plt.ylabel("Post Number")
-    plt.xlabel("Comment Number")
+    s = ''
+    if group_name != None:
+        s = "Comments&Posts of {} \n(from {} to {})".format(group_name, date_end, date_start)
+    else:
+        s = "Comments&Posts (from {} to {})".format(date_end, date_start)
+    title_str = s
+    ax1.set_title(title_str, fontsize=18)
+    plt.ylabel("Posts", fontsize=12)
+    plt.xlabel("Comments", fontsize=12)
     max_y = 100
     max_x = 100
     if post_list:
@@ -123,14 +131,15 @@ def draw_figure(data_list, threshold, date_end, date_start, final_comment_number
     plt.xlim(-5, max_x_tick)
 
     print("Start to scatter")
+    p_scatter = ax1.scatter(comment_list, post_list, s=500, c = color, alpha=0.5, marker='o', cmap=plt.get_cmap("Spectral"))
 
-    p_scatter = ax1.scatter(comment_list, post_list, s=155, c = color, alpha=0.5, marker='o', cmap=plt.get_cmap("Spectral"))
     y = [i for i in range(max(post_list)+20)]
     x = [final_comment_number for i in range(len(y))]
     #Draw the final line
     ax1.plot(x, y, '--', alpha=0.4)
     #ax1.text(x[0], y[0], 'The Final Line', ha='left', va='bottom', fontsize=10)
     ax1.text(x[-1], y[-1], 'The Finish Line~', ha='left', va='top', fontsize=10)
+    #ax1.grid(True)
 
     labels = []
     ann = []
@@ -208,6 +217,7 @@ if __name__ == '__main__':
 [1569252594, 'unknown user', 1, 0, 'https://mug0.assets-yammer.com/mugshot/images/48x48/no_photo.png']]
 
 
+    group_name = "Qingdao Center"
 
 
     threshold = 0
@@ -215,7 +225,7 @@ if __name__ == '__main__':
     date_end = None
     final_comment_number = 40
     show_top = 5
-    plt =  draw_figure(example_list, threshold, date_end, date_start, final_comment_number, show_top)
+    plt =  draw_figure(example_list, threshold, date_end, date_start, final_comment_number, show_top, group_name)
     plt.show()
     #plt.savefig("test.png", dpi=200)
 

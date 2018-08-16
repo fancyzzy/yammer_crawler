@@ -194,7 +194,8 @@ class My_Yammer():
 
 
     #Game
-    def get_group_rank(self, group_id, letter_num=1, least_comment_num=1, end_date=None, start_date=None):
+    def get_group_rank(self, group_id, letter_num=1, least_comment_num=1, end_date=None, start_date=None,\
+                       is_sorted_for_post=False):
         '''
         Get a sorted list which contatin user name, message num which is the key to rank
         Only return those users who had sent messages. For those not sent even one message,
@@ -205,7 +206,7 @@ class My_Yammer():
         :param least_comment_num: number of messages sent
         :param end_date:   liek '2018/08/07'
         :param start_date: '2018/02/01'
-        :return: list
+        :return: list: [[id, name, comment, post],...]
         '''
         print("Start show group rank with at least letter_num: {}, least_comment_num: {}, from date: {} to {}".\
               format(letter_num, least_comment_num, end_date, start_date))
@@ -242,14 +243,21 @@ class My_Yammer():
                 if is_replied == None:
                     d_users[sender_id][1] += 1
                     n_post += 1
-                #is an update
+                #is a comment/update
                 else:
                     d_users[sender_id][0] += 1
                     n += 1
 
-
+        #[[id, comments, post], ...]
         result_list = [[x,d_users[x][0],d_users[x][1]] for x in d_users.keys() if d_users[x][0] >= least_comment_num]
-        ranked_list = sorted(result_list, key=lambda x:x[1], reverse=True)
+
+        if is_sorted_for_post:
+            #for post
+            idx = 2
+        else:
+            #for comment
+            idx = 1
+        ranked_list = sorted(result_list, key=lambda x:x[idx], reverse=True)
 
         #get user name by id and append user id and  photo
         user_info = self.get_group_users(group_id)
@@ -369,9 +377,10 @@ if __name__ == '__main__':
 
     #group_id = '12562314' #Qingdao
     #my_yammer.pull_all_users_and_details(group_id, interval=5)
-    my_yammer.pull_newer_messages(group_id, interval=5)
+    #my_yammer.pull_newer_messages(group_id, interval=5)
     str_now = datetime.now().strftime("%Y/%m/%d")
-    ranked_list = my_yammer.get_group_rank(group_id, letter_num=0, least_comment_num=1, end_date=str_now, start_date=None)
+    ranked_list = my_yammer.get_group_rank(group_id, letter_num=0, least_comment_num=1, end_date=str_now, \
+                                           start_date=None, is_sorted_for_post=True)
 
     #my_yammer.export_users_details_to_excel(group_id)
     for item in ranked_list:

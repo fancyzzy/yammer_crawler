@@ -67,6 +67,7 @@ def get_rank():
     final_comment_num = 50
     show_top = 10
     group_id = '15273590'
+    rank_for_post = False
 
     if request.method == 'POST':
         # yammer_result = ["a", "b", "c"]
@@ -78,6 +79,12 @@ def get_rank():
         final_comment_num = request.form['final_comment_num']
         show_top = request.form['show_top']
         group_id = request.form['sel_group']
+        rank_for_post = int(request.form['rank_for_post'])
+        if rank_for_post == 0:
+            rank_for_post = False
+        else:
+            rank_for_post = True
+
         print("DEBUG group_id :{}".format(group_id))
 
         if letter_num.isdigit():
@@ -113,11 +120,13 @@ def get_rank():
     # group_id = '15273590'
     # group_id = '12562314'
     ya = my_yammer.My_Yammer()
-    yammer_result = ya.get_group_rank(group_id, letter_num, least_comment_num, end_date, start_date)
+    group_name = ya.get_group_name(group_id)
+    yammer_result = ya.get_group_rank(group_id, letter_num, least_comment_num,\
+                                      end_date, start_date, rank_for_post)
     # return render_template('yammer_rank.html', mylist=yammer_result, img_name=img_url)
     print("DEBUG start to created png")
     # 转成图片的步骤
-    plt = my_plot.draw_figure(yammer_result, 0, end_date, start_date, final_comment_num, show_top)
+    plt = my_plot.draw_figure(yammer_result, 0, end_date, start_date, final_comment_num, show_top, group_name)
     print("Get plt id: {}".format(id(plt)))
 
     if start_date == None:
@@ -132,8 +141,11 @@ def get_rank():
     plt.savefig(sio, format='png', dpi=100)
     data = base64.b64encode(sio.getvalue()).decode()
     # plt.close()
+    rank_category = "Comment"
+    if rank_for_post:
+        rank_category = "Post"
 
-    return render_template('yammer_rank.html', mylist=yammer_result, my_data=data)
+    return render_template('yammer_rank.html', mylist=yammer_result, my_data=data, rank_category=rank_category)
 
 
 @app.route('/user/<name>')
