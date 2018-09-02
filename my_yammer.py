@@ -14,11 +14,6 @@ import my_crawler
 #pythoncom.CoInitialize()
 
 
-reload(sys)
-sys.setdefaultencoding('utf8')
-
-
-
 class My_Yammer():
 
     def __init__(self):
@@ -220,6 +215,10 @@ class My_Yammer():
 
         messages = self.get_group_messages(group_id)
 
+        if messages == None:
+            print("nothing")
+            return
+
         for message in messages["messages"]:
 
             created_date = message["created_at"].split()[0]
@@ -383,7 +382,8 @@ if __name__ == '__main__':
                                            start_date=None, is_sorted_for_post=True)
 
     #my_yammer.export_users_details_to_excel(group_id)
-    for item in ranked_list:
-        print(item)
+    if ranked_list != None:
+        for item in ranked_list:
+            print(item)
 
     print("done")

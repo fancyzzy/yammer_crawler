@@ -14,14 +14,14 @@ from flask import abort
 from flask_script import Manager
 from flask import render_template
 
-from wtforms import StringField, SubmitField
-from wtforms.validators import Email, Required
+#from wtforms import StringField, SubmitField
+#from wtforms.validators import Email, Required
 
 import my_yammer
 from datetime import datetime
 import time
 import my_plot
-from flask import send_file
+#from flask import send_file
 
 #import matplotlib
 # matplotlib.use('Agg')
@@ -146,15 +146,6 @@ def get_rank():
         rank_category = "Post"
 
     return render_template('yammer_rank.html', mylist=yammer_result, my_data=data, rank_category=rank_category)
-
-
-@app.route('/user/<name>')
-def user(name):
-    #abort(404)
-    #return '<h1>Hello, %s!</h1>'%(name)
-    name = None
-    return render_template('user.html', user_name=name)
-
 
 
 if __name__ == '__main__':

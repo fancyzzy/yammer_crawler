@@ -10,13 +10,13 @@ Use selenium to simulate human operation
 to bypass yammer authentication
 '''
 
-from selenium import webdriver
-from time import sleep
+#from selenium import webdriver
+#from time import sleep
 from bs4 import BeautifulSoup
 import json
 
 #Simulate keyboard input
-import win32com.client as comclt
+#import win32com.client as comclt
 '''
 wsh.SendKeys("abc") #types out abc directly into wherever you have your cursor (ex: right into this editor itself!)
 wsh.SendKeys("{NUMLOCK}{CAPSLOCK}{SCROLLLOCK}")
@@ -36,12 +36,6 @@ YAMMER_GROUP_USERS = 'https://www.yammer.com/api/v1/users/in_group/'
 API_RESTRICT = 20
 
 
-def simulate_keyboard(the_str):
-    wsh= comclt.Dispatch("WScript.Shell")
-    wsh.SendKeys(the_str)
-###############simulate_keyboard()########################
-
-
 def extend_diff(list_source, list_new):
     for item in list_new:
         if item not in list_source:
@@ -52,68 +46,9 @@ def extend_diff(list_source, list_new):
 
 class My_Crawler():
     def __init__(self, group_id):
-        # profile
-        # profile_dir = r'C:\Users\tarzonz\AppData\Roaming\Mozilla\Firefox\Profiles\e6k753v5.default'
-        # profile = webdriver.FirefoxProfile(profile_dir)
-        #self.wd = webdriver.Firefox()
-        self.my_browser = webdriver.Chrome()
-        print("Created my_browser: {}".format(self.my_browser))
-
-        self.login_ok = False
-        self.trigger_login(group_id)
-
-        #self.my_parser = my_parser.My_Parser()
-        #self.my_database = my_database.My_Database()
+        pass
     ############__init__()##############
 
-
-    def is_login_ok(self):
-        return self.login_ok
-    ##########is_login_ok()#############
-
-
-    def quit(self):
-        self.my_browser.quit()
-    ###############quit()###############
-
-    def close(self):
-        self.my_browser.close()
-    ###############close()##############
-
-
-    def trigger_login(self, group_id):
-        '''
-        Simulate human operation to login
-        by selenium
-        :return:
-        '''
-        #login
-        print("start login")
-        print("TRIGGER login url: {}".format(TRIGGER_URL))
-        self.my_browser.get(TRIGGER_URL)
-
-        login_email = self.my_browser.find_element_by_id("i0116")
-        login_email.send_keys(LOGIN_EMAIL)
-        self.my_browser.find_element_by_id("idSIButton9").click()
-        #javascript style click
-        # js_str = r'setTimeout(function(){document.getElementById("idSIButton9").click()},100)'
-        # self.my_browser.execute_script(js_str)
-        for i in range(10):
-            print(i)
-            sleep(1)
-
-        #Simulate keyboard press:
-        simulate_keyboard(LOGIN_CSL+LOGIN_PWD)
-
-        #here is a timer to denfend hanging loggin
-
-        self.group_name = self.get_group_name(group_id)
-        if self.group_name:
-            print("login %s successful"%(self.group_name))
-            self.login_ok = True
-        else:
-            print("login failed!")
-    ############trigger_login()###################
 
     def get_group_name(self, group_id):
 
@@ -165,6 +100,7 @@ class My_Crawler():
             print("Download batch {}".format(i))
             print("url: {}".format(group_messages_url))
 
+            '''
             js_cmd = r'window.open("{}");'.format(group_messages_url)
             self.my_browser.execute_script(js_cmd)
 
@@ -195,6 +131,7 @@ class My_Crawler():
             if len(json_dict["messages"]) == 0:
                 print("Warning, no messages got due to some reason, dowload stopped")
                 break
+            '''
 
             #concatenate json_str to json_result
             if json_result == None:
@@ -409,7 +346,9 @@ class My_Crawler():
         user_name = user_dict["full_name"]
         print("Start download user detail of {}".format(user_name))
         print("url: {}".format(user_url))
+        json_str = None
 
+        '''
         js_cmd = r'window.open("{}");'.format(user_url)
         self.my_browser.execute_script(js_cmd)
 
@@ -420,6 +359,7 @@ class My_Crawler():
 
         soup = BeautifulSoup(self.my_browser.page_source, features="html.parser")
         json_str = soup.get_text("body")
+        '''
 
         # Convert to python dict from a json like string
         json_dict = json.loads(json_str)
@@ -433,18 +373,6 @@ class My_Crawler():
         return json_dict
 
     ###########download_all_user_details()############################################
-
-
-
-    def download_messages_in_conversation(self, thread_id):
-        '''
-        Extract all the messages in a conversation
-        if you are interested in this
-        :param thread_id:
-        :return:
-        '''
-        pass
-
 
 
 if __name__ == '__main__':
