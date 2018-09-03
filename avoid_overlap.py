@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 
-from adjustText import adjust_text
-import numpy as np
+
+# for MacOS
+import matplotlib
+matplotlib.use('TkAgg')
+# for MacOS
 import matplotlib.pyplot as plt
 
+
+from adjustText import adjust_text
+import numpy as np
 
 def draw_overlap():
     np.random.seed(0)

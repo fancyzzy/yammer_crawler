@@ -6,34 +6,32 @@ by RESful API:
 https://www.yammer.com/api/v1/messages/in_group/15273590.json
 
 Method:
-Use selenium to simulate human operation
-to bypass yammer authentication
+Use yampy to download json data
 '''
 
-#from selenium import webdriver
-#from time import sleep
 from bs4 import BeautifulSoup
 import json
+import yampy
+import time
 
-#Simulate keyboard input
-#import win32com.client as comclt
-'''
-wsh.SendKeys("abc") #types out abc directly into wherever you have your cursor (ex: right into this editor itself!)
-wsh.SendKeys("{NUMLOCK}{CAPSLOCK}{SCROLLLOCK}")
-'''
 
 #Trigger to login
 TRIGGER_URL = 'https://www.yammer.com/nokia.com/#/threads/inGroup?type=in_group&feedId=15273590'
 LOGIN_EMAIL = 'felix.zhang@nokia-sbell.com'
-LOGIN_CSL = 'tarzonz\t'
-LOGIN_PWD = 'CV_28763_14a\r'
 
+
+BASE_API = 'http://www.yammer.com/api/v1'
 #YAMMER_API_MESSAGE = 'https://www.yammer.com/api/v1/messages/in_group/15273590.json'
 YAMMER_GROUP_MESSAGES = 'https://www.yammer.com/api/v1/messages/in_group/'
 #YAMMER_API_USER = 'https://www.yammer.com/api/v1/users/in_group/15273590.json'
 
 YAMMER_GROUP_USERS = 'https://www.yammer.com/api/v1/users/in_group/'
+
 API_RESTRICT = 20
+
+MY_CLIENT_ID = '2fxbPxiDYwtM40yN3m0fQ'
+MY_CLIENT_SECRET = 'hJKivZUnqsl6vAP2NyaFodWK2nNDxHJ5MxwPtg4s'
+REDIRECT_URI = 'https://yammerstate.herokuapp.com'
 
 
 def extend_diff(list_source, list_new):
@@ -45,8 +43,31 @@ def extend_diff(list_source, list_new):
 
 
 class My_Crawler():
-    def __init__(self, group_id):
-        pass
+    def __init__(self, access_token=None):
+
+        '''
+        authenticator = yampy.Authenticator(client_id=MY_CLIENT_ID, client_secret=MY_CLIENT_SECRET)
+        auth_url = authenticator.authorization_url(redirect_uri=REDIRECT_URI)
+        print("Debug auth_url: {}".format(auth_url))
+
+        auth_url = \
+        'https://www.yammer.com/dialog/oauth?client_id=2fxbPxiDYwtM40yN3m0fQ&redirect_uri=https%3A%2F%2Fyammerstate.herokuapp.com'
+
+        code = "xMK0kj1bGHmCp6gELwX44Q"
+
+        access_data = authenticator.fetch_access_data(code)
+
+        access_token = access_data.access_token.token
+        print("DEBUG access_token: {}".format(access_token))
+        '''
+
+        if access_token == None:
+            print("DEBUG token = None")
+            return
+
+        self.yampy = yampy.Yammer(access_token=access_token)
+        print("Init finished")
+
     ############__init__()##############
 
 
@@ -71,7 +92,7 @@ class My_Crawler():
     ##########get_group_name()#####################
 
 
-    def download_all_messages(self, group_id, interval=5, older_than_message_id=None, n=None):
+    def mdownload_all_messages(self, group_id, interval=5, older_than_message_id=None, n=None):
         '''
 
         download all the messages in the group
@@ -94,44 +115,16 @@ class My_Crawler():
         if older_than_message_id != None:
             group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?older_than=%s'%(older_than_message_id)
 
-
         while 1:
             i += 1
             print("Download batch {}".format(i))
             print("url: {}".format(group_messages_url))
 
-            '''
-            js_cmd = r'window.open("{}");'.format(group_messages_url)
-            self.my_browser.execute_script(js_cmd)
+            #Call yampy API
+            json_dict = self.yampy.messages.from_group(group_id, older_than_message_id)
 
-            # handles
-            handles = self.my_browser.window_handles
-            self.my_browser.switch_to.window(handles[-1])
-            current_h = self.my_browser.current_window_handle
-            #print("DEBUG handles: {}, current_handle: {}".format(handles, current_h))
-
-            soup = BeautifulSoup(self.my_browser.page_source, features="html.parser")
-            json_str = soup.get_text("body")
-            # Get all the text contents from the page
-            # html = self.browser.page_source
-            # print("DEBUG soup.body: {}".format(soup.body))
-            # print("DEBUG json_str: {}".format(json_str))
-
-            # Or you can just designate to the only block content
-            # json_str = soup.pre.contents[0]
-
-            # Convert to python dict from a json like string
-            json_dict = json.loads(json_str)
-            #print("DEBUG json_dict['meta']['older_available'] = {}".format(json_dict["meta"]["older_available"]))
-            #print("DEBUG len(json_dict['messages']): {}".format(len(json_dict['messages'])))
-            #print("DEBUG json_dict['messages'][-1]: {}, json_dict['messages'][-1]['id']: {}". \
-            #    format(json_dict['messages'][-1], json_dict['messages'][-1]['id']))
-
-            #check to stop
-            if len(json_dict["messages"]) == 0:
-                print("Warning, no messages got due to some reason, dowload stopped")
-                break
-            '''
+            print("DEBUG type(json_dict): {}".format(type(json_dict)))
+            print("DEBUG json_dict: {}".format(json_dict))
 
             #concatenate json_str to json_result
             if json_result == None:
@@ -153,9 +146,10 @@ class My_Crawler():
             # Check to continue
             if json_dict["meta"]["older_available"]:
                 print("older available, sleep %d second.."%(interval))
-                sleep(interval)
-                last_message_id = json_dict["messages"][-1]["id"]
-                group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?older_than=%s'%(last_message_id)
+                time.sleep(interval)
+                older_than_message_id = json_dict["messages"][-1]["id"]
+                group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + \
+                                     '?older_than=%s'%(older_than_message_id)
             else:
                 print("No more messages, download finished")
                 break
@@ -163,7 +157,6 @@ class My_Crawler():
             if n and i >= n:
                 print("Stop download by %d times"%(n))
                 break
-
 
         return json_result
 
@@ -186,7 +179,6 @@ class My_Crawler():
         soup = None
         #YAMMER_API_MESSAGE = 'https://www.yammer.com/api/v1/messages/in_group/'
         group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?newer_than=%s'%(newer_than_message_id)
-
 
         while 1:
             i += 1
@@ -233,8 +225,9 @@ class My_Crawler():
 
             print("more newer messages available, sleep %d second.."%(interval))
             sleep(interval)
-            last_message_id = json_dict["messages"][-1]["id"]
-            group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?older_than=%s'%(last_message_id)
+            older_than_message_id = json_dict["messages"][-1]["id"]
+            group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + \
+                                 '?older_than=%s'%(older_than_message_id)
 
         return newer_json_result
     ###########################download_newer_messages()##########################################
@@ -377,13 +370,14 @@ class My_Crawler():
 
 if __name__ == '__main__':
 
-    group_id = '15273590'
-    my_crawler = My_Crawler(group_id)
+    group_id = 15273590
+    access_token = '592-FnmLDb1cF0zMgyj32jnz0w'
+    my_crawler = My_Crawler(access_token)
 
     '''
     #download and save all messages in the group
-    result_json = my_crawler.download_all_messages(group_id, interval=5, older_than_message_id=None, n=None)
-    print("Debug messages result_json: {}".format(result_json))
+    result_json = my_crawler.download_all_messages(group_id, interval=1, older_than_message_id=None, n=None)
+    print("Debug messages number: {}, result_json: {}".format(len(result_json["messages"]), result_json))
     file_name = 'group_%s_messages.json'%(group_id)
     with open(file_name, 'w') as fb:
         #convert dict to string
@@ -403,12 +397,12 @@ if __name__ == '__main__':
 
 
     #Test to download newer messages
-    newer_than_message_id = '1126445002'
-    newer_result_json = my_crawler.download_newer_messages(group_id, newer_than_message_id, interval=5)
+#    newer_than_message_id = '1126445002'
+#    newer_result_json = my_crawler.download_newer_messages(group_id, newer_than_message_id, interval=5)
     #print("DEBUG newer_result_json: {}".format(newer_result_json))
 
     print("done")
-    my_crawler.quit()
+#    my_crawler.quit()
 
 
 

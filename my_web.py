@@ -11,26 +11,15 @@ from flask import make_response
 from flask import redirect
 from flask import abort
 
-from flask_script import Manager
 from flask import render_template
-
-#from wtforms import StringField, SubmitField
-#from wtforms.validators import Email, Required
 
 import my_yammer
 from datetime import datetime
 import time
 import my_plot
-#from flask import send_file
-
-#import matplotlib
-# matplotlib.use('Agg')
-#import matplotlib.pyplot as plt
-
 import os
 
 app = Flask(__name__)
-manager = Manager(app)
 
 @app.route('/')
 def index():
@@ -38,8 +27,10 @@ def index():
     ya = my_yammer.My_Yammer()
     groups = ya.get_groups()
     print("DEBUG groups: {}".format(groups))
-
-    return render_template('login.html', groups=groups)
+    auth_url = \
+        'https://www.yammer.com/dialog/oauth?client_id=2fxbPxiDYwtM40yN3m0fQ&redirect_uri=https%3A%2F%2Fyammerstate.herokuapp.com'
+    return auth_url
+    #return render_template('login.html', groups=groups)
 
 @app.route('/login', methods=['POST'])
 def login2():
@@ -78,7 +69,10 @@ def get_rank():
         least_comment_num = request.form['least_comment_num']
         final_comment_num = request.form['final_comment_num']
         show_top = request.form['show_top']
+
+        print("DEBUG show_top: {}".format(show_top))
         group_id = request.form['sel_group']
+        print("DEBUG group_id: {}".format(group_id))
         rank_for_post = int(request.form['rank_for_post'])
         if rank_for_post == 0:
             rank_for_post = False

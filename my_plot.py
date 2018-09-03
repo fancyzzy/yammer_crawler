@@ -5,6 +5,10 @@
 Use matplotlib to draw  figures of  post and updates points
 '''
 
+# for MacOS
+import matplotlib
+matplotlib.use('TkAgg')
+# for MacOS
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -75,6 +79,9 @@ def draw_figure(data_list, threshold, date_end, date_start, final_comment_number
     :return:
     '''
 
+    if (data_list) == None:
+        print("Nothing")
+        return
 
     final_comment_number = int(final_comment_number)
     show_top = int(show_top)
@@ -83,6 +90,7 @@ def draw_figure(data_list, threshold, date_end, date_start, final_comment_number
         date_start = "beginning"
     if date_end == None:
         date_end = "Now"
+
     post_list= [x[3] for x in data_list if x[2]>threshold or x[3]>threshold]
     comment_list = [x[2] for x in data_list if x[2]>threshold or x[3]>threshold]
     name_list = [x[1] for x in data_list if x[2]>threshold or x[3]>threshold]
@@ -148,26 +156,6 @@ def draw_figure(data_list, threshold, date_end, date_start, final_comment_number
         label = ("%d. "%(i+1) + name_list[i] + "(%d,%d)"%(comment_list[i],post_list[i]))
         labels.append(label)
 
-        #arrow_dict = dict(arrowstyle="fancy",color="0.5", shrinkB=5, connectionstyle="arc3,rad=0.3")
-        #arrow_dict = dict(arrowstyle="fancy", headwidth=6, width=0.2, facecolor='black', shrink=0.05)
-        '''
-        arrow_dict = None
-        ann.append(plt.annotate(label,\
-        xy=(comment_list[i], post_list[i]), xytext=(comment_list[i]+0.5, post_list[i]+0.1),\
-        fontsize=8, arrowprops=arrow_dict))
-        '''
-
-    #x = x, y = y, autoalign = 'y',
-    #only_move = {'points': 'y', 'text': 'y'}
-    #texts = [plt.text(comment_list[i], post_list[i], '%s' % labels[i], ha='left', va='bottom', fontsize=7)\
-    #         for i in range(0, len(comment_list))]
-    #adjust_text(texts, x=comment_list, y=post_list)
-    #adjust_text(texts)
-    #adjust_text(texts, arrowprops=dict(arrowstyle='->', color='black'))
-    #legend
-    #ax1.legend(name_list, loc = 'top left', scatterpoints=1)
-    #ax1.legend()
-
     txt_height = 0.0224 * (plt.ylim()[1] - plt.ylim()[0])
     txt_width = 0.045 * (plt.xlim()[1] - plt.xlim()[0])
     print("DEBUG plt.ylim()[1]: {}".format(plt.ylim()[1]))
@@ -181,9 +169,6 @@ def draw_figure(data_list, threshold, date_end, date_start, final_comment_number
         text_plotter(labels[:show_top], comment_list[:show_top], post_list[:show_top], text_positions, txt_width, txt_height, final_comment_number)
     else:
         text_plotter(labels[show_top:], comment_list[show_top:], post_list[show_top:], text_positions, txt_width, txt_height, final_comment_number)
-
-
-
 
     #Delete right and top spines
     ax1.spines['top'].set_color('none')

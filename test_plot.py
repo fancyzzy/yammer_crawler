@@ -21,7 +21,8 @@ def send_data():
     yammer_result = ya.get_group_rank(group_id, letter_num, least_comment_num, end_date, start_date)
 
     print("DEBUG start to created png")
-    plt =  my_plot.draw_figure(yammer_result, 0, end_date, start_date)
+    total_line = 100
+    plt =  my_plot.draw_figure(yammer_result, 0, end_date, start_date, total_line)
     print("Get plt id: {}".format(id(plt)))
 
 
@@ -31,6 +32,9 @@ def send_data():
         end_date = "now"
 
     sio = BytesIO()
+    if plt == None:
+        return
+
     plt.savefig(sio, format='png', dpi=100)
     data = base64.b64encode(sio.getvalue()).decode()
     plt.close()
