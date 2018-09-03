@@ -24,7 +24,13 @@ app = Flask(__name__)
 @app.route('/')
 def index():
 
-    ya = my_yammer.My_Yammer()
+    '''
+
+    how to add token to a session?
+
+    '''
+    access_token = ''
+    ya = my_yammer.My_Yammer(access_token)
     groups = ya.get_groups()
     print("DEBUG groups: {}".format(groups))
     auth_url = \

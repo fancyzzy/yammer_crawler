@@ -16,21 +16,23 @@ import my_crawler
 
 class My_Yammer():
 
-    def __init__(self):
+    def __init__(self, access_token):
+
         self.my_db = my_database.My_Database()
+        self.my_crawler = my_crawler.My_Crawler(access_token)
+        print("my_yammer init finished")
+
     ##########__init__()################################
 
 
-    def pull_all_messages(self, group_id, interval=5):
+    def pull_all_messages(self, group_id, interval=1):
 
         print("start pull_all_messages, group_id = {}".format(group_id))
-        mc = my_crawler.My_Crawler(group_id)
-        all_messages = mc.download_all_messages(group_id, interval)
-        mc.quit()
+        all_messages = self.my_crawler.download_all_messages(group_id, interval)
 
         #save to db
         if all_messages != None:
-            self.my_db.save_group_messages(all_messages, group_id)
+            self.my_db.save_group_messages(all_messages, str(group_id))
             print("Messages data saved successfully.")
             return True
         else:
@@ -40,18 +42,16 @@ class My_Yammer():
     ############pull_all_messages()###############################
 
 
-    def pull_newer_messages(self, group_id, interval=5):
+    def pull_newer_messages(self, group_id, interval=1):
 
         print("start pull_newer_messages, group_id = {}".format(group_id))
-        existed_messages = self.my_db.get_group_messages(group_id)
+        existed_messages = self.my_db.get_group_messages(str(group_id))
 
         #Continue to download messages that are newer that the latest existed message
         newer_messages = None
         if existed_messages != None:
             newer_than_id = existed_messages["messages"][0]["id"]
-            mc = my_crawler.My_Crawler(group_id)
-            newer_messages = mc.download_newer_messages(group_id, newer_than_id, interval)
-            mc.quit()
+            newer_messages = self.my_crawler.download_newer_messages(group_id, newer_than_id, interval)
 
             #save to db
             if newer_messages != None:
@@ -69,7 +69,7 @@ class My_Yammer():
     #################pull_newer_messages()#########################
 
 
-    def pull_all_users(self, group_id, interval=5):
+    def pull_all_users(self, group_id, interval=1):
         '''
         download all the user general info
 
@@ -77,19 +77,17 @@ class My_Yammer():
         :param interval:
         :return:
         '''
-        mc = my_crawler.My_Crawler(group_id)
-        dict_users = mc.download_all_users(group_id, interval)
-        mc.quit()
+        dict_users = self.my_crawler.download_all_users(group_id, interval)
 
         #save to db
         if dict_users != None:
-            self.my_db.save_group_users(dict_users, group_id)
+            self.my_db.save_group_users(dict_users, str(group_id))
             return True
         else:
             return False
     ############pull_all_users()###############################
 
-    def pull_all_users_details(self, group_id, interval=5):
+    def pull_all_users_details(self, group_id, interval=1):
         '''
         download all the users detailed info and save each one into a json file
 
@@ -98,24 +96,21 @@ class My_Yammer():
         :return:
         '''
         print("Start to download each user detailed info of group {}".format(group_id))
-        existed_users = self.my_db.get_group_users(group_id)
+        existed_users = self.my_db.get_group_users(str(group_id))
 
-        mc = my_crawler.My_Crawler(group_id)
         #download each user's detailed info
         n = 0
         for user_dict in existed_users["users"]:
 
             print("Download batch: {}".format(n+1))
-            dict_user = mc.download_user_details(user_dict)
-            self.my_db.save_group_user_details(dict_user, group_id)
+            dict_user = self.my_crawler.download_user_details(user_dict)
+            self.my_db.save_group_user_details(dict_user, str(group_id))
             n += 1
-
-        mc.quit()
         return True
     ###############pull_all_users_details()####################
 
 
-    def pull_all_users_and_details(self, group_id, interval=5):
+    def pull_all_users_and_details(self, group_id, interval=1):
         '''
         download all users general info json and each user details json
 
@@ -132,7 +127,7 @@ class My_Yammer():
 
     def get_group_name(self, group_id):
 
-        existed_messages = self.my_db.get_group_messages(group_id)
+        existed_messages = self.my_db.get_group_messages(str(group_id))
         if existed_messages == None:
             print("Group data is not existed yet")
         else:
@@ -146,7 +141,7 @@ class My_Yammer():
         :return: existed_messages like https://www.yammer.com/api/v1/messages/in_group/15273590.json
         '''
 
-        existed_messages = self.my_db.get_group_messages(group_id)
+        existed_messages = self.my_db.get_group_messages(str(group_id))
         #logic, algorithm
 
         return existed_messages
@@ -158,7 +153,8 @@ class My_Yammer():
         existed_users like https://www.yammer.com/api/v1/users/in_group/15273590.json
         '''
 
-        existed_users = self.my_db.get_group_users(group_id)
+        existed_users = self.my_db.get_group_users(str(group_id))
+        print("DEBUG existed_users: {}".format(existed_users))
 
         #convert to id:user_data dict
         users_info = {}
@@ -178,7 +174,7 @@ class My_Yammer():
         :return:
         '''
 
-        return self.my_db.get_user_info(user_id, group_id)
+        return self.my_db.get_user_info(user_id, str(group_id))
 
     ##############get_user_info()##################################
 
@@ -305,7 +301,7 @@ class My_Yammer():
         :return:
         '''
         print("Export to users details to excel of group: {}".format(group_id))
-        dict_list = self.my_db.get_users_details(group_id)
+        dict_list = self.my_db.get_users_details(str(group_id))
 
         dest_folder = my_database.DATA_PATH
 
@@ -362,21 +358,23 @@ if __name__ == '__main__':
     email_add = ''
     csl = ''
     pwd = ''
-    group_id = '15273590'
+    group_id = 15273590
     #group_id = '12562314' #Qingdao
 
-    my_yammer = My_Yammer()
+    access_token = '592-FnmLDb1cF0zMgyj32jnz0w'
+    my_yammer = My_Yammer(access_token)
 
-    #my_yammer.pull_newer_messages(group_id, interval=5)
+    my_yammer.pull_newer_messages(group_id, interval=1)
+    my_yammer.pull_all_users(group_id, interval=1)
 
     #str_now = datetime.now().strftime("%Y/%m/%d")
     #my_yammer.get_group_rank(group_id, letter_num=0, end_date=str_now, start_date=None)
 
-    #my_yammer.pull_all_users_details(group_id, interval=5)
+    #my_yammer.pull_all_users_details(group_id, interval=1)
 
     #group_id = '12562314' #Qingdao
-    #my_yammer.pull_all_users_and_details(group_id, interval=5)
-    #my_yammer.pull_newer_messages(group_id, interval=5)
+    #my_yammer.pull_all_users_and_details(group_id, interval=1)
+    #my_yammer.pull_newer_messages(group_id, interval=1)
     str_now = datetime.now().strftime("%Y/%m/%d")
     ranked_list = my_yammer.get_group_rank(group_id, letter_num=0, least_comment_num=1, end_date=str_now, \
                                            start_date=None, is_sorted_for_post=True)

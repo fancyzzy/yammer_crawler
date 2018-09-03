@@ -107,7 +107,7 @@ class My_Crawler():
     ##########get_group_name()#####################
 
 
-    def mdownload_all_messages(self, group_id, interval=5, older_than_message_id=None, n=None):
+    def download_all_messages(self, group_id, interval=5, older_than_message_id=None, n=None):
         '''
 
         download all the messages in the group
@@ -136,9 +136,6 @@ class My_Crawler():
 
             #Call yampy API
             json_dict = self.yampy.messages.from_group(group_id, older_than_message_id)
-
-            print("DEBUG type(json_dict): {}".format(type(json_dict)))
-            print("DEBUG json_dict: {}".format(json_dict))
 
             #concatenate json_str to json_result
             if json_result == None:
@@ -322,9 +319,9 @@ class My_Crawler():
     ###########download_all_users()###################################################
 
 
-    def download_user_details(self, user_dict, interval=5):
+    def download_user_details(self, user_dict, interval=1):
         '''
-        download one user detailed information from a exsited user dict
+        download one user detailed information from the url in the user dict
 
         :param user_dict: Contatins all user info in key 'url' value
         see: https://www.yammer.com/api/v1/users/1640338967.json
@@ -340,31 +337,15 @@ class My_Crawler():
         print("url: {}".format(user_url))
         json_str = None
 
-        '''
-        js_cmd = r'window.open("{}");'.format(user_url)
-        self.my_browser.execute_script(js_cmd)
+        #Call yampy API
+        api_str = user_url.replace(BASE_API, '')
+        print("DEBUG api_str: {}".format(api_str))
+        json_dict = self.yampy.client.get(api_str)
 
-        # handles
-        handles = self.my_browser.window_handles
-        self.my_browser.switch_to.window(handles[-1])
-        current_h = self.my_browser.current_window_handle
-
-        soup = BeautifulSoup(self.my_browser.page_source, features="html.parser")
-        json_str = soup.get_text("body")
-        '''
-
-        # Convert to python dict from a json like string
-        json_dict = json.loads(json_str)
-
-        # close this window tag
-        self.my_browser.close()
-        handles = self.my_browser.window_handles
-        self.my_browser.switch_to.window(handles[0])
-
-        sleep(interval)
+        time.sleep(interval)
         return json_dict
 
-    ###########download_all_user_details()############################################
+    ###########download_user_details()############################################
 
 
 if __name__ == '__main__':
