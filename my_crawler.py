@@ -15,10 +15,6 @@ import yampy
 import time
 
 
-#Trigger to login
-TRIGGER_URL = 'https://www.yammer.com/nokia.com/#/threads/inGroup?type=in_group&feedId=15273590'
-LOGIN_EMAIL = 'felix.zhang@nokia-sbell.com'
-
 
 BASE_API = 'http://www.yammer.com/api/v1'
 #YAMMER_API_MESSAGE = 'https://www.yammer.com/api/v1/messages/in_group/15273590.json'
@@ -40,6 +36,21 @@ def extend_diff(list_source, list_new):
             list_source.append(item)
 ###############extend_diff()#############################
 
+from types import  MethodType
+def from_group(self, group_id, older_than=None, newer_than=None,
+               limit=None, threaded=None):
+    """
+    Returns messages that were posted in the group identified by group_id.
+
+    See the :meth:`all` method for a description of the keyword arguments.
+    """
+    path = "/messages/in_group/%d" % (group_id)
+    return self._client.get(path, **self._argument_converter(
+        older_than=older_than,
+        newer_than=newer_than,
+        limit=limit,
+        threaded=threaded,
+        ))
 
 
 class My_Crawler():
@@ -66,29 +77,33 @@ class My_Crawler():
             return
 
         self.yampy = yampy.Yammer(access_token=access_token)
+
+        #dynamicly add method
+        self.yampy.messages.from_group = MethodType(from_group, self.yampy.messages)
+
         print("Init finished")
 
     ############__init__()##############
 
 
     def get_group_name(self, group_id):
+        '''
+        get group name from the message dict
+        :param group_id:
+        :return:
+        '''
 
         group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id)
+        print("Check group name in 'meta','feed_name' of {}".format(group_messages_url))
 
-        js_cmd = r'window.open("{}");'.format(group_messages_url)
-        self.my_browser.execute_script(js_cmd)
+        # Call yampy API
+        json_dict = self.yampy.messages.from_group(group_id)
 
-        handles = self.my_browser.window_handles
-        self.my_browser.switch_to.window(handles[-1])
-
-        soup = BeautifulSoup(self.my_browser.page_source, features="html.parser")
-
-        json_str = soup.get_text("body")
-        json_dict = json.loads(json_str)
-
-        group_name = json_dict["meta"]["feed_name"]
-
-        return group_name
+        if json_dict != None:
+            group_name = json_dict["meta"]["feed_name"]
+            return group_name
+        else:
+            return None
     ##########get_group_name()#####################
 
 
@@ -109,7 +124,6 @@ class My_Crawler():
         json_result = None
         json_str = None
         i = 0
-        soup = None
         #YAMMER_API_MESSAGE = 'https://www.yammer.com/api/v1/messages/in_group/'
         group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id)
         if older_than_message_id != None:
@@ -176,7 +190,6 @@ class My_Crawler():
         newer_json_result = None
         json_str = None
         i = 0
-        soup = None
         #YAMMER_API_MESSAGE = 'https://www.yammer.com/api/v1/messages/in_group/'
         group_messages_url = YAMMER_GROUP_MESSAGES + '%s.json'%(group_id) + '?newer_than=%s'%(newer_than_message_id)
 
@@ -270,7 +283,6 @@ class My_Crawler():
         json_str = None
         i = 0
         page_num = 0
-        soup = None
         #YAMMER_GROUP_USER = 'https://www.yammer.com/api/v1/users/in_group/'
         group_users_url = YAMMER_GROUP_USERS  + '%s.json'%(group_id)
 
@@ -395,7 +407,6 @@ if __name__ == '__main__':
         print("None newer messages")
 
     print("done")
-#    my_crawler.quit()
 
 
 
